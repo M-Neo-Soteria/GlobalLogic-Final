@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Check Server Room Temperature – GL02-FM-ES (M&E)-006</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+        font-size: 12px;
+        background: #e8e8e8;
+      }
+
+      /* WRAPPER for Responsiveness */
+      .wrapper {
+        width: 100%;
+        overflow-x: auto;
+        padding: 24px 16px;
+      }
+
+      /* PAGE */
+      .page {
+        background: #fff;
+        width: 950px;
+        min-width: 950px;
+        margin: 0 auto;
+        border: 1px solid #aaa;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* HEADER */
+      .header {
+        display: grid;
+        grid-template-columns: 220px 1fr 220px;
+        border-bottom: 2px solid #555;
+      }
+      .logo-cell {
+        padding: 8px 12px;
+        border-right: 1px solid #999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .logo-cell img {
+        max-width: 100%;
+        max-height: 45px;
+        object-fit: contain;
+      }
+      .title-cell {
+        background: #7f7f7f;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        padding: 10px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .title-main {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .title-sub {
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .doc-cell {
+        border-left: 1px solid #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 12px;
+        text-align: center;
+      }
+
+      /* ADDRESS BANNER */
+      .address-banner {
+        background: #fff;
+        padding: 10px;
+        border-bottom: 1px solid #bbb;
+        text-align: center;
+        line-height: 1.4;
+      }
+      .address-banner p {
+        font-size: 12px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      /* SETTINGS BAR */
+      .settings-bar {
+        background: #f0f0f0;
+        border-bottom: 1px solid #999;
+        display: none;
+        padding: 8px 15px;
+        gap: 20px;
+        align-items: center;
+        font-weight: 600;
+        font-size: 11px;
+      }
+      .settings-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-right: 1px solid #ccc;
+        padding-right: 15px;
+      }
+      .settings-group:last-child {
+        border: none;
+      }
+      .settings-bar input {
+        width: 50px;
+        padding: 2px 0;
+        border: 1px solid #999;
+        text-align: center;
+        border-radius: 3px;
+      }
+
+      /* SUB-HEADER */
+      .subheader {
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        border-bottom: 1px solid #999;
+      }
+      .capacity-cell {
+        padding: 6px 10px;
+        font-size: 14px;
+        font-weight: 700;
+        border-right: 1px solid #999;
+        display: flex;
+        align-items: center;
+      }
+      .date-cell {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .date-cell input {
+        border: 1px solid #ccc;
+        font-size: 12px;
+        padding: 1px 4px;
+      }
+
+      /* TABLE */
+      .table-wrap {
+        overflow-x: auto;
+        flex-grow: 1;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      thead tr th {
+        background: #d9d9d9;
+        border: 1px solid #999;
+        text-align: center;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 6px 4px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      tbody tr td {
+        border: 1px solid #bbb;
+        height: 30px;
+        text-align: center;
+      }
+      tbody tr td.time-label {
+        font-weight: 700;
+        background: #f2f2f2;
+        font-size: 13px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      tbody tr td input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-size: 12px;
+        background: transparent;
+        padding: 0;
+        font-family: inherit;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      tbody tr td input:focus {
+        background: #fff8d6;
+        box-shadow: inset 0 0 0 1.5px #e6b800;
+      }
+
+      /* Column Widths */
+      th:nth-child(1) {
+        width: 80px;
+      }
+      th:nth-child(2) {
+        width: 120px;
+      }
+      th:nth-child(3) {
+        width: 120px;
+      }
+      th:nth-child(4) {
+        width: 200px;
+      }
+      th:nth-child(5) {
+        width: auto;
+      }
+
+      /* ALERT COLORS - Applied to TD now for better print support */
+      td.val-high {
+        background-color: #ffe6e6 !important; /* Light Red */
+      }
+      td.val-high input {
+        color: #d93025 !important;
+        font-weight: 700;
+      }
+      td.val-low {
+        background-color: #e6f2ff !important; /* Light Blue */
+      }
+      td.val-low input {
+        color: #0066cc !important;
+        font-weight: 700;
+      }
+
+      /* THRESHOLD INFO TABLE */
+      .threshold-wrap {
+        padding: 15px 40px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: center;
+      }
+      .threshold-table {
+        width: 450px;
+        border-collapse: collapse;
+        border: 2px solid #555;
+      }
+      .threshold-table th,
+      .threshold-table td {
+        border: 1px solid #555;
+        text-align: center;
+        padding: 4px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .threshold-table th {
+        background: #e8e8e8;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* SIGNATURE SECTION */
+      .sig-section {
+        display: none;
+        justify-content: space-between;
+        padding: 20px 40px 15px 40px;
+        margin-top: 5px;
+      }
+      .sig-box {
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: flex-end;
+      }
+      .sig-input {
+        border: none;
+        border-bottom: 1px solid #000;
+        width: 220px;
+        margin-left: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        padding-bottom: 2px;
+        text-align: center;
+        background: transparent;
+      }
+
+      /* VERSION INFO BAR */
+      .version-bar {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 14px 5px 14px;
+        font-size: 10px;
+        color: #555;
+        border-top: 1px solid #eee;
+        margin-top: 10px;
+      }
+      .version-bar .center {
+        text-align: center;
+        font-weight: 600;
+      }
+      .version-bar .right {
+        text-align: right;
+      }
+
+      /* FOOTER / BUTTONS */
+      .footer {
+        border-top: 1px solid #aaa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 14px;
+        background: #f7f7f7;
+      }
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+      button {
+        padding: 6px 15px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 2px;
+        border: 1px solid #1a5276;
+      }
+      .btn-save {
+        background: #1a5276;
+        color: #fff;
+      }
+      .btn-csv {
+        background: #1e8449;
+        color: white;
+        border-color: #1e8449;
+      }
+      .btn-print {
+        background: white;
+        color: #1a5276;
+      }
+
+      /* PRINT OPTIMIZATIONS */
+      @media print {
+        @page {
+          size: auto;
+          margin: 10mm;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .footer,
+        .settings-bar,
+        .date-cell input::-webkit-calendar-picker-indicator {
+          display: none;
+        }
+        body {
+          padding: 0;
+          background: white;
+        }
+        .wrapper {
+          padding: 0;
+          overflow: visible;
+        }
+        .page {
+          box-shadow: none;
+          border: none;
+          width: 100%;
+          min-width: 0;
+          margin: 0;
+        }
+        /* Enforce Table Borders for Print */
+        table,
+        th,
+        td {
+          border: 1px solid #000 !important;
+        }
+        .header,
+        .subheader,
+        .address-banner,
+        .threshold-wrap,
+        .version-bar {
+          border-color: #000 !important;
+        }
+        /* Ensure Inputs Display as Standard Text */
+        tbody tr td input,
+        .sig-input {
+          color: inherit;
+          background: transparent !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="page">
+        <div class="header">
+          <div class="logo-cell">
+            <img
+              src="globallogiclogo.png"
+              alt="GlobalLogic A Hitachi Group Company"
+            />
+          </div>
+          <div class="title-cell">
+            <div class="title-main">DAILY CHECK SERVER ROOM TEMPERATURE</div>
+          </div>
+          <div class="doc-cell">GL02-FM-ES (M&amp;E)-006</div>
+        </div>
+
+        <div class="address-banner">
+          <p>
+            Logic Entity Name : GlobalLogic India Pvt. Ltd., Facility Address :
+            Tower-3, OBP Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
+          </p>
+        </div>
+
+        <div class="settings-bar">
+          <span>⚙️ Limits:</span>
+          <div class="settings-group">
+            <span>Temp Min:</span>
+            <input
+              type="number"
+              id="limit-temp-min"
+              value="22"
+              oninput="applyAllThresholds()"
+            />
+            <span>Max:</span>
+            <input
+              type="number"
+              id="limit-temp-max"
+              value="24"
+              oninput="applyAllThresholds()"
+            />
+          </div>
+          <div class="settings-group">
+            <span>Hum Min:</span>
+            <input
+              type="number"
+              id="limit-hum-min"
+              value="40"
+              oninput="applyAllThresholds()"
+            />
+            <span>Max:</span>
+            <input
+              type="number"
+              id="limit-hum-max"
+              value="70"
+              oninput="applyAllThresholds()"
+            />
+          </div>
+        </div>
+
+        <div class="subheader">
+          <div class="capacity-cell">5th Floor Project Server Room</div>
+          <div class="date-cell">
+            <span>Date:-</span>
+            <input type="date" id="check-date" onchange="loadDateData()" />
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="checklist">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Temperature</th>
+                <th>Humidity (%)</th>
+                <th>Signature</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="data-body"></tbody>
+          </table>
+        </div>
+
+        <div class="threshold-wrap">
+          <table class="threshold-table">
+            <thead>
+              <tr>
+                <th>Threshold Values:</th>
+                <th>Minimum</th>
+                <th>Maximum</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Temperature (in degree)</td>
+                <td>22°C</td>
+                <td>24°C</td>
+              </tr>
+              <tr>
+                <td>Humidity rH (in %age)</td>
+                <td>40%</td>
+                <td>70%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sig-section" id="sig-section">
+          <div class="sig-box">
+            Supervisor Signature:
+            <input
+              type="text"
+              id="sig-supervisor"
+              class="sig-input"
+              placeholder="Enter name"
+            />
+          </div>
+          <div class="sig-box">
+            Employee Services Signature:
+            <input
+              type="text"
+              id="sig-employee"
+              class="sig-input"
+              placeholder="Enter name"
+            />
+          </div>
+        </div>
+
+        <div class="version-bar">
+          <span>Version 2.0</span>
+          <span class="center">Classification - GL Restricted</span>
+          <span class="right">Effective Date: 12-Nov-2021</span>
+        </div>
+
+        <div class="footer">
+          <span
+            >Daily Check Server Room Temperature | GlobalLogic – Hitachi
+            Group</span
+          >
+          <div class="btn-group">
+            <button class="btn-print" onclick="window.print()">🖨 Print</button>
+            <button class="btn-csv" onclick="exportToCSV()">
+              📊 Export CSV
+            </button>
+            <button class="btn-save" onclick="saveData()">💾 Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SHEET_ID = "SERVER_ROOM_LOG_006";
+      const TIMES = [
+        "0:00",
+        "2:00",
+        "4:00",
+        "6:00",
+        "8:00",
+        "10:00",
+        "12:00",
+        "14:00",
+        "16:00",
+        "18:00",
+        "20:00",
+        "22:00",
+      ];
+      const COL_COUNT = 4;
+      const TEMP_COL = 0;
+      const HUM_COL = 1;
+      const SIG_COL = 2;
+      const REMARKS_COL = 3;
+
+      function buildRows() {
+        const tbody = document.getElementById("data-body");
+        tbody.innerHTML = "";
+        TIMES.forEach((t, ri) => {
+          const tr = document.createElement("tr");
+          const td0 = document.createElement("td");
+          td0.className = "time-label";
+          td0.textContent = t;
+          tr.appendChild(td0);
+
+          for (let ci = 0; ci < COL_COUNT; ci++) {
+            const td = document.createElement("td");
+            const inp = document.createElement("input");
+            inp.type = "text";
+            inp.dataset.row = ri;
+            inp.dataset.col = ci;
+
+            inp.addEventListener("input", function () {
+              // Allow numbers and decimals
+              if (ci === TEMP_COL || ci === HUM_COL) {
+                this.value = this.value.replace(/[^0-9.]/g, "");
+                if ((this.value.match(/\./g) || []).length > 1) {
+                  this.value = this.value.substring(0, this.value.length - 1);
+                }
+
+                // --- HUMIDITY RANGE VALIDATION (0-100) ---
+                if (ci === HUM_COL && this.value !== "") {
+                  let val = parseFloat(this.value);
+                  if (val < 0) this.value = "0";
+                  if (val > 100) this.value = "100";
+                }
+
+                checkThreshold(this);
+              }
+              checkSignatureVisibility();
+            });
+
+            td.appendChild(inp);
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        });
+      }
+
+      function checkSignatureVisibility() {
+        const sigSection = document.getElementById("sig-section");
+        const checkDateStr = document.getElementById("check-date").value;
+        if (!checkDateStr) return;
+
+        const allInputs = document.querySelectorAll("#data-body input");
+        let allFilled = true;
+        for (let inp of allInputs) {
+          let colIndex = parseInt(inp.dataset.col);
+          if (colIndex !== REMARKS_COL && inp.value.trim() === "") {
+            allFilled = false;
+            break;
+          }
+        }
+
+        const checkDateObj = new Date(checkDateStr);
+        checkDateObj.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const diffTime = today.getTime() - checkDateObj.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        const supSigInput = document.getElementById("sig-supervisor");
+        const empSigInput = document.getElementById("sig-employee");
+        const hasSignatures =
+          supSigInput.value.trim() !== "" || empSigInput.value.trim() !== "";
+
+        if (allFilled && (diffDays === 1 || hasSignatures)) {
+          sigSection.style.display = "flex";
+          const isEditable = diffDays === 1;
+          supSigInput.disabled = !isEditable;
+          empSigInput.disabled = !isEditable;
+        } else {
+          sigSection.style.display = "none";
+        }
+      }
+
+      function checkThreshold(input) {
+        const col = parseInt(input.dataset.col);
+        const val = parseFloat(input.value);
+        const parentTd = input.parentElement;
+
+        if (isNaN(val)) {
+          parentTd.classList.remove("val-high", "val-low");
+          return;
+        }
+
+        let min, max;
+        if (col === TEMP_COL) {
+          min = parseFloat(document.getElementById("limit-temp-min").value);
+          max = parseFloat(document.getElementById("limit-temp-max").value);
+        } else if (col === HUM_COL) {
+          min = parseFloat(document.getElementById("limit-hum-min").value);
+          max = parseFloat(document.getElementById("limit-hum-max").value);
+        } else {
+          return;
+        }
+
+        parentTd.classList.remove("val-high", "val-low");
+        if (val > max) parentTd.classList.add("val-high");
+        if (val < min) parentTd.classList.add("val-low");
+      }
+
+      function applyAllThresholds() {
+        document.querySelectorAll("#data-body input").forEach((inp) => {
+          const col = parseInt(inp.dataset.col);
+          if (col === TEMP_COL || col === HUM_COL) checkThreshold(inp);
+        });
+        saveSettings();
+      }
+
+      function saveSettings() {
+        const settings = {
+          tMin: document.getElementById("limit-temp-min").value,
+          tMax: document.getElementById("limit-temp-max").value,
+          hMin: document.getElementById("limit-hum-min").value,
+          hMax: document.getElementById("limit-hum-max").value,
+        };
+        localStorage.setItem(`${SHEET_ID}_settings`, JSON.stringify(settings));
+      }
+
+      function loadSettings() {
+        const saved = JSON.parse(localStorage.getItem(`${SHEET_ID}_settings`));
+        if (saved) {
+          document.getElementById("limit-temp-min").value = saved.tMin;
+          document.getElementById("limit-temp-max").value = saved.tMax;
+          document.getElementById("limit-hum-min").value = saved.hMin;
+          document.getElementById("limit-hum-max").value = saved.hMax;
+        }
+      }
+
+      function loadDateData() {
+        const date = document.getElementById("check-date").value;
+        const storageKey = `${SHEET_ID}_${date}`;
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
+        document.querySelectorAll("#data-body input").forEach((inp) => {
+          const key = `r${inp.dataset.row}c${inp.dataset.col}`;
+          inp.value = saved[key] || "";
+        });
+
+        document.getElementById("sig-supervisor").value =
+          saved["sig_sup"] || "";
+        document.getElementById("sig-employee").value = saved["sig_emp"] || "";
+
+        applyAllThresholds();
+        checkSignatureVisibility();
+      }
+
+      function saveData() {
+        const date = document.getElementById("check-date").value;
+        const storageKey = `${SHEET_ID}_${date}`;
+        const data = {};
+
+        document.querySelectorAll("#data-body input").forEach((inp) => {
+          data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
+        });
+
+        data["sig_sup"] = document.getElementById("sig-supervisor").value;
+        data["sig_emp"] = document.getElementById("sig-employee").value;
+
+        localStorage.setItem(storageKey, JSON.stringify(data));
+
+        const btn = document.querySelector(".btn-save");
+        btn.textContent = "✓ Saved";
+        setTimeout(() => (btn.textContent = "💾 Save"), 1500);
+
+        checkSignatureVisibility();
+      }
+
+      function exportToCSV() {
+        const date = document.getElementById("check-date").value;
+        let csv = ["Daily Check Server Room Temperature - " + date + "\n"];
+        const headers = [
+          "Time",
+          "Temperature",
+          "Humidity",
+          "Signature",
+          "Remarks",
+        ];
+        csv.push('"' + headers.join('","') + '"');
+
+        document.querySelectorAll("#data-body tr").forEach((row) => {
+          let rowData = [];
+          rowData.push('"' + row.querySelector(".time-label").innerText + '"');
+          row.querySelectorAll("input").forEach((inp) => {
+            let val = inp.value.replace(/"/g, '""');
+            rowData.push('"' + val + '"');
+          });
+          csv.push(rowData.join(","));
+        });
+
+        csv.push("");
+        csv.push(
+          `Supervisor Signature,"${document.getElementById("sig-supervisor").value}"`,
+        );
+        csv.push(
+          `Employee Services Signature,"${document.getElementById("sig-employee").value}"`,
+        );
+
+        const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `Server_Room_Report_${date}.csv`;
+        link.click();
+      }
+
+      document.getElementById("check-date").value = new Date()
+        .toISOString()
+        .split("T")[0];
+      loadSettings();
+      buildRows();
+      loadDateData();
+    </script>
+  </body>
+</html>

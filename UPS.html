@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily UPS Health Check – GL02-FM-ES (M&E)-007</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+        font-size: 12px;
+        background: #e8e8e8;
+        display: flex;
+        justify-content: center;
+        padding: 24px 16px;
+      }
+
+      .page {
+        background: #fff;
+        width: 100%;
+        max-width: 1150px;
+        border: 1px solid #aaa;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* HEADER */
+      .header {
+        display: grid;
+        grid-template-columns: 220px 1fr 220px;
+        border-bottom: 2px solid #555;
+      }
+      .logo-cell {
+        padding: 8px 12px;
+        border-right: 1px solid #999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .logo-cell img {
+        max-width: 100%;
+        max-height: 45px;
+        object-fit: contain;
+      }
+      .title-cell {
+        background: #7f7f7f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 10px;
+        text-align: center;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .doc-cell {
+        border-left: 1px solid #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 12px;
+        text-align: center;
+      }
+
+      /* ADDRESS BANNER */
+      .address-banner {
+        background: #fff;
+        padding: 10px;
+        border-bottom: 1px solid #bbb;
+        text-align: center;
+        line-height: 1.4;
+      }
+      .address-banner strong {
+        font-size: 13px;
+        color: #333;
+      }
+      .address-banner p {
+        font-size: 11px;
+        color: #555;
+      }
+
+      /* UPS SELECTOR DROPDOWN */
+      .ups-selector-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ups-selector-group label {
+        font-weight: 600;
+        font-size: 12px;
+        color: #333;
+      }
+      .ups-selector-group select {
+        padding: 4px 8px;
+        border: 1px solid #999;
+        border-radius: 3px;
+        font-size: 12px;
+        cursor: pointer;
+        background: #fff;
+      }
+      .ups-selector-group select:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #1a5276;
+      }
+
+      /* SUB-HEADER */
+      .subheader {
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        border-bottom: 1px solid #999;
+      }
+      .capacity-cell {
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 600;
+        border-right: 1px solid #999;
+      }
+      .date-cell {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .date-cell input {
+        border: 1px solid #ccc;
+        font-size: 12px;
+        padding: 1px 4px;
+      }
+
+      /* TABLE */
+      .table-wrap {
+        overflow-x: auto;
+        flex-grow: 1;
+        -webkit-overflow-scrolling: touch;
+      }
+      table {
+        width: 100%;
+        min-width: 1000px;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      thead tr th {
+        background: #d9d9d9;
+        border: 1px solid #999;
+        text-align: center;
+        font-weight: 700;
+        font-size: 10px;
+        padding: 3px 2px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      tbody tr td {
+        border: 1px solid #bbb;
+        height: 26px;
+        text-align: center;
+      }
+      tbody tr td.time-label {
+        font-weight: 600;
+        background: #f2f2f2;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      tbody tr td input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-size: 11px;
+        background: transparent;
+        padding: 0;
+      }
+      tbody tr td input:focus {
+        background: #fff8d6;
+        box-shadow: inset 0 0 0 1.5px #e6b800;
+      }
+
+      /* ALERT COLORS - Applied to TD for print compatibility */
+      td.val-high {
+        background-color: #ffe6e6 !important; /* Light Red Background */
+      }
+      td.val-high input {
+        color: #d93025 !important; /* Bold Red Text */
+        font-weight: 700;
+      }
+      td.val-low {
+        background-color: #e6f2ff !important; /* Light Blue Background */
+      }
+      td.val-low input {
+        color: #0066cc !important; /* Bold Blue Text */
+        font-weight: 700;
+      }
+
+      /* SIGNATURE SECTION */
+      .sig-section {
+        display: none;
+        justify-content: space-between;
+        padding: 30px 40px 10px 40px;
+        margin-top: 10px;
+      }
+      .sig-box {
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: flex-end;
+      }
+      .sig-input {
+        border: none;
+        border-bottom: 1px solid #000;
+        width: 220px;
+        margin-left: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        padding-bottom: 2px;
+        text-align: center;
+        background: transparent;
+      }
+      .sig-input:disabled {
+        border-bottom: 1px dashed #777;
+        color: #555;
+      }
+
+      /* VERSION INFO BAR */
+      .version-bar {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 14px 5px 14px;
+        font-size: 10px;
+        color: #555;
+        border-top: 1px solid #eee;
+        margin-top: 20px;
+      }
+      .version-bar span {
+        flex: 1;
+      }
+      .version-bar .center {
+        text-align: center;
+        font-weight: 600;
+      }
+      .version-bar .right {
+        text-align: right;
+      }
+
+      /* FOOTER / BUTTONS */
+      .footer {
+        border-top: 1px solid #aaa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        background: #f7f7f7;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .btn-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 8px 15px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 2px;
+        border: 1px solid #1a5276;
+      }
+      .btn-save {
+        background: #1a5276;
+        color: #fff;
+      }
+      .btn-csv {
+        background: #1e8449;
+        color: white;
+        border-color: #1e8449;
+      }
+      .btn-print {
+        background: white;
+        color: #1a5276;
+      }
+
+      /* --- RESPONSIVE MEDIA QUERIES --- */
+      @media (max-width: 768px) {
+        body {
+          padding: 10px 5px;
+        }
+        .header {
+          grid-template-columns: 1fr;
+        }
+        .logo-cell {
+          border-right: none;
+          border-bottom: 1px solid #999;
+        }
+        .doc-cell {
+          border-left: none;
+          border-top: 1px solid #999;
+        }
+        .subheader {
+          grid-template-columns: 1fr;
+        }
+        .subheader > div:first-child {
+          flex-direction: column;
+          align-items: flex-start !important;
+          gap: 10px !important;
+        }
+        .capacity-cell {
+          border-right: none;
+          border-bottom: 1px solid #999;
+          width: 100%;
+          padding-bottom: 8px !important;
+        }
+        .date-cell {
+          border-top: 1px solid #999;
+          justify-content: flex-start;
+          padding: 10px;
+        }
+        .sig-section {
+          flex-direction: column;
+          gap: 20px;
+          padding: 20px;
+        }
+        .sig-box {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+          width: 100%;
+        }
+        .sig-input {
+          width: 100%;
+          margin-left: 0;
+        }
+        .version-bar {
+          flex-direction: column;
+          gap: 8px;
+          text-align: center;
+        }
+        .version-bar .right {
+          text-align: center;
+        }
+        .footer {
+          flex-direction: column;
+          text-align: center;
+          justify-content: center;
+        }
+        .btn-group {
+          justify-content: center;
+          width: 100%;
+        }
+        .btn-group button {
+          flex-grow: 1;
+        }
+      }
+
+      /* --- PRINT MEDIA QUERIES --- */
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        @page {
+          size: landscape;
+          margin: 10mm;
+        }
+        body {
+          padding: 0;
+          background: white;
+        }
+        .footer {
+          display: none;
+        }
+        .page {
+          box-shadow: none;
+          border: none;
+          width: 100%;
+          max-width: none;
+        }
+        /* Fix table borders */
+        table,
+        th,
+        td {
+          border: 1px solid #000 !important;
+        }
+        .header,
+        .subheader,
+        .address-banner {
+          border-color: #000 !important;
+        }
+        table {
+          min-width: auto !important;
+          width: 100%;
+        }
+        .table-wrap {
+          overflow: visible;
+        }
+        .date-cell input {
+          border: none;
+          background: transparent;
+          color: #000;
+          padding: 0;
+          font-family: inherit;
+          outline: none;
+        }
+        .date-cell input::-webkit-calendar-picker-indicator {
+          display: none;
+        }
+        .ups-selector-group select {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          border: none;
+          background: transparent;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 0;
+          color: #000;
+        }
+        tbody tr td input,
+        .sig-input {
+          color: inherit;
+          background: transparent !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="header">
+        <div class="logo-cell">
+          <img
+            src="globallogiclogo.png"
+            alt="GlobalLogic A Hitachi Group Company"
+          />
+        </div>
+        <div class="title-cell">Daily UPS Health Check</div>
+        <div class="doc-cell">GL02-FM-ES (M&amp;E)-007</div>
+      </div>
+
+      <div class="address-banner">
+        <p>
+          <strong>GlobalLogic India Private Limited</strong> Facility Address:
+          Tower-3, Oxygen Business Park Pvt. Ltd. SEZ, Plot No. 7, Sec-144,
+          Noida (UP)
+        </p>
+      </div>
+
+      <div class="subheader">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 6px 10px;
+            flex: 1;
+          "
+        >
+          <div class="capacity-cell" style="padding: 0; border: none">
+            UPS Capacity 80 KVA
+          </div>
+          <div class="ups-selector-group">
+            <select id="ups-unit" onchange="switchUPSSheet()">
+              <option value="1">UPS 1</option>
+              <option value="2">UPS 2</option>
+              <option value="3">UPS 3</option>
+              <option value="4">UPS 4</option>
+              <option value="5">UPS 5</option>
+            </select>
+          </div>
+        </div>
+        <div class="date-cell">
+          <span>Date:</span>
+          <input type="date" id="check-date" onchange="loadDateData()" />
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="checklist">
+          <thead>
+            <tr>
+              <th rowspan="2" style="width: 55px">Time</th>
+              <th colspan="3">Input Voltage</th>
+              <th colspan="3">Input Current</th>
+              <th colspan="3">Output Voltage</th>
+              <th colspan="3">Output Current</th>
+              <th rowspan="2" style="width: 45px">O/P KVA</th>
+              <th rowspan="2" style="width: 45px">O/P KW</th>
+              <th rowspan="2" style="width: 40px">Hz</th>
+              <th colspan="2">Battery</th>
+              <th rowspan="2" style="width: 70px">
+                Room Temp. in &deg;C (22 to 24)
+              </th>
+              <th rowspan="2" style="width: 100px">Technician Signature</th>
+            </tr>
+            <tr>
+              <th>RY</th>
+              <th>YB</th>
+              <th>BR</th>
+              <th>IR</th>
+              <th>IY</th>
+              <th>IB</th>
+              <th>RY</th>
+              <th>YB</th>
+              <th>BR</th>
+              <th>IR</th>
+              <th>IY</th>
+              <th>IB</th>
+              <th>Volt</th>
+              <th>A</th>
+            </tr>
+          </thead>
+          <tbody id="data-body"></tbody>
+        </table>
+      </div>
+
+      <div class="sig-section" id="sig-section">
+        <div class="sig-box">
+          Supervisor Signature:
+          <input
+            type="text"
+            id="sig-supervisor"
+            class="sig-input"
+            placeholder="Enter name"
+          />
+        </div>
+        <div class="sig-box">
+          Employee Services Signature:
+          <input
+            type="text"
+            id="sig-employee"
+            class="sig-input"
+            placeholder="Enter name"
+          />
+        </div>
+      </div>
+
+      <div class="version-bar">
+        <span>Version 1.5</span>
+        <span class="center">Classification - GL Restricted</span>
+        <span class="right">Effective Date: 12-Nov-2021</span>
+      </div>
+
+      <div class="footer">
+        <span>GL02-FM-ES (M&amp;E)-007 | GlobalLogic – Hitachi Group</span>
+        <div class="btn-group">
+          <button class="btn-print" onclick="window.print()">🖨 Print</button>
+          <button class="btn-csv" onclick="exportToCSV()">📊 Export CSV</button>
+          <button class="btn-save" onclick="saveData()">💾 Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const UPS_UNITS = ["1", "2", "3", "4", "5"];
+      const BASE_SHEET_ID = "UPS_LOG_007";
+      let currentUPS = "1";
+      let SHEET_ID = `${BASE_SHEET_ID}_UPS${currentUPS}`;
+
+      const TIMES = [
+        "0:00",
+        "2:00",
+        "4:00",
+        "6:00",
+        "8:00",
+        "10:00",
+        "12:00",
+        "14:00",
+        "16:00",
+        "18:00",
+        "20:00",
+        "22:00",
+      ];
+
+      const COL_COUNT = 19;
+      const SIG_COL = 18;
+
+      // Hardcoded Threshold Mapping (Format: Col Index -> [Min, Max])
+      const THRESHOLDS = {
+        0: [355, 455],
+        1: [355, 455],
+        2: [355, 455], // Input Voltage (RY, YB, BR)
+        3: [0, 60],
+        4: [0, 60],
+        5: [0, 60], // Input Current (IR, IY, IB)
+        6: [396, 404],
+        7: [396, 404],
+        8: [396, 404], // Output Voltage (RY, YB, BR)
+        9: [0, 50],
+        10: [0, 50],
+        11: [0, 50], // Output Current (IR, IY, IB)
+        12: [0, 40], // O/P KVA
+        13: [0, 32], // O/P KW
+        14: [48, 52], // Hz
+        15: [432, 462], // Battery Volt
+        16: [0, 15], // Battery Amp
+        17: [22, 24], // Temp °C
+      };
+
+      function buildRows() {
+        const tbody = document.getElementById("data-body");
+        tbody.innerHTML = "";
+        TIMES.forEach((t, ri) => {
+          const tr = document.createElement("tr");
+          const td0 = document.createElement("td");
+          td0.className = "time-label";
+          td0.textContent = t;
+          tr.appendChild(td0);
+
+          for (let ci = 0; ci < COL_COUNT; ci++) {
+            const td = document.createElement("td");
+            const inp = document.createElement("input");
+            inp.type = "text";
+            inp.dataset.row = ri;
+            inp.dataset.col = ci;
+
+            inp.addEventListener("input", function () {
+              if (ci !== SIG_COL) {
+                // Allow numbers and decimal points
+                this.value = this.value.replace(/[^0-9.]/g, "");
+                // Prevent multiple decimals
+                if ((this.value.match(/\./g) || []).length > 1) {
+                  this.value = this.value.substring(0, this.value.length - 1);
+                }
+                checkThreshold(this);
+              }
+              checkSignatureVisibility();
+            });
+
+            td.appendChild(inp);
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        });
+      }
+
+      function checkSignatureVisibility() {
+        const sigSection = document.getElementById("sig-section");
+        const checkDateStr = document.getElementById("check-date").value;
+        if (!checkDateStr) return;
+
+        const allInputs = document.querySelectorAll("#data-body input");
+        let allFilled = true;
+        for (let inp of allInputs) {
+          if (inp.value.trim() === "") {
+            allFilled = false;
+            break;
+          }
+        }
+
+        const checkDateObj = new Date(checkDateStr);
+        checkDateObj.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const diffTime = today.getTime() - checkDateObj.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        const supSigInput = document.getElementById("sig-supervisor");
+        const empSigInput = document.getElementById("sig-employee");
+
+        const hasSignatures =
+          supSigInput.value.trim() !== "" || empSigInput.value.trim() !== "";
+
+        if (allFilled && (diffDays >= 1 || hasSignatures)) {
+          sigSection.style.display = "flex";
+          const isEditable = diffDays === 1;
+          supSigInput.disabled = !isEditable;
+          empSigInput.disabled = !isEditable;
+        } else {
+          sigSection.style.display = "none";
+        }
+      }
+
+      function checkThreshold(input) {
+        const col = parseInt(input.dataset.col);
+        const val = parseFloat(input.value);
+        const parentTd = input.parentElement;
+
+        parentTd.classList.remove("val-high", "val-low");
+
+        if (isNaN(val) || !THRESHOLDS[col]) {
+          return;
+        }
+
+        const [min, max] = THRESHOLDS[col];
+        if (val > max) parentTd.classList.add("val-high");
+        if (val < min) parentTd.classList.add("val-low");
+      }
+
+      function applyAllThresholds() {
+        document.querySelectorAll("#data-body input").forEach((inp) => {
+          if (parseInt(inp.dataset.col) !== SIG_COL) checkThreshold(inp);
+        });
+      }
+
+      function switchUPSSheet() {
+        saveData();
+        const selectedUPS = document.getElementById("ups-unit").value;
+        currentUPS = selectedUPS;
+        SHEET_ID = `${BASE_SHEET_ID}_UPS${currentUPS}`;
+        document.getElementById("check-date").value = new Date()
+          .toISOString()
+          .split("T")[0];
+        loadDateData();
+      }
+
+      function loadDateData() {
+        const date = document.getElementById("check-date").value;
+        const storageKey = `${SHEET_ID}_${date}`;
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
+        document.querySelectorAll("#data-body input").forEach((inp) => {
+          const key = `r${inp.dataset.row}c${inp.dataset.col}`;
+          inp.value = saved[key] || "";
+        });
+
+        document.getElementById("sig-supervisor").value =
+          saved["sig_sup"] || "";
+        document.getElementById("sig-employee").value = saved["sig_emp"] || "";
+
+        applyAllThresholds();
+        checkSignatureVisibility();
+      }
+
+      function saveData() {
+        const date = document.getElementById("check-date").value;
+        const storageKey = `${SHEET_ID}_${date}`;
+        const data = {};
+
+        document.querySelectorAll("#data-body input").forEach((inp) => {
+          data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
+        });
+
+        data["sig_sup"] = document.getElementById("sig-supervisor").value;
+        data["sig_emp"] = document.getElementById("sig-employee").value;
+
+        localStorage.setItem(storageKey, JSON.stringify(data));
+
+        const btn = document.querySelector(".btn-save");
+        btn.textContent = "✓ Saved";
+        setTimeout(() => (btn.textContent = "💾 Save"), 1500);
+
+        checkSignatureVisibility();
+      }
+
+      function exportToCSV() {
+        const date = document.getElementById("check-date").value;
+        const upsNum = document.getElementById("ups-unit").value;
+        let csv = [`Daily UPS (Unit ${upsNum}) Health Check - ${date}\n`];
+
+        const flatHeaders = [
+          "Time",
+          "Input Voltage (RY)",
+          "Input Voltage (YB)",
+          "Input Voltage (BR)",
+          "Input Current (IR)",
+          "Input Current (IY)",
+          "Input Current (IB)",
+          "Output Voltage (RY)",
+          "Output Voltage (YB)",
+          "Output Voltage (BR)",
+          "Output Current (IR)",
+          "Output Current (IY)",
+          "Output Current (IB)",
+          "O/P KVA",
+          "O/P KW",
+          "Hz",
+          "Battery Volt",
+          "Battery A",
+          "Temp °C",
+          "Technician Signature",
+        ];
+        csv.push('"' + flatHeaders.join('","') + '"');
+
+        document.querySelectorAll("#data-body tr").forEach((row) => {
+          let rowData = [];
+          row.querySelectorAll("td").forEach((col) => {
+            let val = col.querySelector("input")
+              ? col.querySelector("input").value
+              : col.innerText.replace(/\n/g, " ");
+            rowData.push('"' + val + '"');
+          });
+          csv.push(rowData.join(","));
+        });
+
+        csv.push("");
+        csv.push(
+          `Supervisor Signature,"${document.getElementById("sig-supervisor").value}"`,
+        );
+        csv.push(
+          `Employee Services Signature,"${document.getElementById("sig-employee").value}"`,
+        );
+
+        const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `UPS_${upsNum}_Report_${date}.csv`;
+        link.click();
+      }
+
+      // Initialize
+      document.getElementById("check-date").value = new Date()
+        .toISOString()
+        .split("T")[0];
+      buildRows();
+      loadDateData();
+    </script>
+  </body>
+</html>
