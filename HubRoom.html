@@ -199,7 +199,7 @@
 
       /* SIGNATURE SECTION */
       .sig-section {
-        display: none;
+        display: flex;
         flex-direction: column;
         gap: 20px;
         padding: 20px;
@@ -308,6 +308,34 @@
         color: #1a5276;
       }
 
+      /* THRESHOLD TABLE */
+      .threshold-wrap {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+      }
+      .threshold-table {
+        width: 40%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      .threshold-table thead tr th {
+        background: #d9d9d9;
+        border: 1px solid #999;
+        text-align: center;
+        font-weight: 700;
+        font-size: 10px;
+        padding: 8px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .threshold-table tbody tr td {
+        border: 1px solid #bbb;
+        text-align: center;
+        padding: 8px;
+        font-size: 11px;
+      }
+
       /* PRINT OPTIMIZATIONS */
       @media print {
         @page {
@@ -374,10 +402,8 @@
       </div>
 
       <div class="address-banner">
-        <strong>GlobalLogic India Private Limited</strong>
         <p>
-          Tower-3, Oxygen Business Park Pvt. Ltd. SEZ, Plot No. 7, Sec-144,
-          Noida (UP)
+          GlobalLogic Entity Name : Globallogic India Pvt. Ltd, Facility Address : Tower-3, OBP Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
         </p>
       </div>
 
@@ -403,7 +429,31 @@
         </table>
       </div>
 
-      <div class="sig-section" id="sig-section">
+        <div class="threshold-wrap">
+          <table class="threshold-table">
+            <thead>
+              <tr>
+                <th>Threshold Values:</th>
+                <th>Minimum</th>
+                <th>Maximum</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Temperature (in degree)</td>
+                <td>22°C</td>
+                <td>24°C</td>
+              </tr>
+              <tr>
+                <td>Humidity rH (in %age)</td>
+                <td>Not Applicable</td>
+                <td>Not Applicable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+              <div class="sig-section" id="sig-section">
         <div class="sig-box">
           Supervisor Signature:
           <input
@@ -472,9 +522,9 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
                     <td class="time-label">${t}</td>
-                    <td><input type="text" data-row="${ri}" data-col="0" oninput="validate(this); checkSignatureVisibility();"></td>
-                    <td><input type="text" data-row="${ri}" data-col="1" oninput="checkSignatureVisibility()"></td>
-                    <td><input type="text" data-row="${ri}" data-col="2" oninput="checkSignatureVisibility()"></td>
+                    <td><input type="text" data-row="${ri}" data-col="0" oninput="validate(this);"></td>
+                    <td><input type="text" data-row="${ri}" data-col="1"></td>
+                    <td><input type="text" data-row="${ri}" data-col="2"></td>
                 `;
           tbody.appendChild(tr);
         });
@@ -508,52 +558,7 @@
           .forEach((inp) => applyThreshold(inp));
       }
 
-      // --- SIGNATURE VISIBILITY LOGIC ---
-      function checkSignatureVisibility() {
-        const sigSection = document.getElementById("sig-section");
-        const checkDateStr = document.getElementById("check-date").value;
-        if (!checkDateStr) return;
 
-        // 1. Validate if essential table inputs are filled (Temp, Tech Sig)
-        // Remarks (Column 2) is treated as optional.
-        const allInputs = document.querySelectorAll("#data-body input");
-        let allFilled = true;
-        for (let inp of allInputs) {
-          let colIndex = parseInt(inp.dataset.col);
-          if (colIndex !== REMARKS_COL && inp.value.trim() === "") {
-            allFilled = false;
-            break;
-          }
-        }
-
-        // 2. Determine if it is the "Next Day" (24:00 of the check date)
-        const checkDateObj = new Date(checkDateStr);
-        checkDateObj.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const diffTime = today.getTime() - checkDateObj.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        const supSigInput = document.getElementById("sig-supervisor");
-        const empSigInput = document.getElementById("sig-employee");
-
-        // Check if signatures already exist
-        const hasSignatures =
-          supSigInput.value.trim() !== "" || empSigInput.value.trim() !== "";
-
-        // Unlock condition: fully filled AND (it is the next day OR already signed)
-        if (allFilled && (diffDays >= 1 || hasSignatures)) {
-          sigSection.style.display = "flex";
-
-          // Keep visible but disable editing if it is past the immediate 24 hour signing window
-          const isEditable = diffDays === 1;
-          supSigInput.disabled = !isEditable;
-          empSigInput.disabled = !isEditable;
-        } else {
-          sigSection.style.display = "none";
-        }
-      }
 
       function saveData() {
         const date = document.getElementById("check-date").value;
@@ -568,8 +573,6 @@
         const btn = document.getElementById("save-btn");
         btn.textContent = "✓ Saved";
         setTimeout(() => (btn.textContent = "💾 Save"), 1500);
-
-        checkSignatureVisibility();
       }
 
       function loadDateData() {
@@ -584,8 +587,6 @@
         document.getElementById("sig-supervisor").value =
           saved["sig_sup"] || "";
         document.getElementById("sig-employee").value = saved["sig_emp"] || "";
-
-        checkSignatureVisibility(); // Evaluate visibility after data loads
       }
 
       function exportToCSV() {

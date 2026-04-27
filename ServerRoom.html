@@ -270,7 +270,7 @@
 
       /* SIGNATURE SECTION */
       .sig-section {
-        display: none;
+        display: flex;
         justify-content: space-between;
         padding: 20px 40px 15px 40px;
         margin-top: 5px;
@@ -419,8 +419,7 @@
 
         <div class="address-banner">
           <p>
-            Logic Entity Name : GlobalLogic India Pvt. Ltd., Facility Address :
-            Tower-3, OBP Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
+            GlobalLogic Entity Name : Globallogic India Pvt. Ltd, Facility Address : Tower-3, OBP Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
           </p>
         </div>
 
@@ -606,7 +605,6 @@
 
                 checkThreshold(this);
               }
-              checkSignatureVisibility();
             });
 
             td.appendChild(inp);
@@ -616,43 +614,7 @@
         });
       }
 
-      function checkSignatureVisibility() {
-        const sigSection = document.getElementById("sig-section");
-        const checkDateStr = document.getElementById("check-date").value;
-        if (!checkDateStr) return;
 
-        const allInputs = document.querySelectorAll("#data-body input");
-        let allFilled = true;
-        for (let inp of allInputs) {
-          let colIndex = parseInt(inp.dataset.col);
-          if (colIndex !== REMARKS_COL && inp.value.trim() === "") {
-            allFilled = false;
-            break;
-          }
-        }
-
-        const checkDateObj = new Date(checkDateStr);
-        checkDateObj.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const diffTime = today.getTime() - checkDateObj.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        const supSigInput = document.getElementById("sig-supervisor");
-        const empSigInput = document.getElementById("sig-employee");
-        const hasSignatures =
-          supSigInput.value.trim() !== "" || empSigInput.value.trim() !== "";
-
-        if (allFilled && (diffDays === 1 || hasSignatures)) {
-          sigSection.style.display = "flex";
-          const isEditable = diffDays === 1;
-          supSigInput.disabled = !isEditable;
-          empSigInput.disabled = !isEditable;
-        } else {
-          sigSection.style.display = "none";
-        }
-      }
 
       function checkThreshold(input) {
         const col = parseInt(input.dataset.col);
@@ -723,7 +685,6 @@
         document.getElementById("sig-employee").value = saved["sig_emp"] || "";
 
         applyAllThresholds();
-        checkSignatureVisibility();
       }
 
       function saveData() {
@@ -743,8 +704,6 @@
         const btn = document.querySelector(".btn-save");
         btn.textContent = "✓ Saved";
         setTimeout(() => (btn.textContent = "💾 Save"), 1500);
-
-        checkSignatureVisibility();
       }
 
       function exportToCSV() {
