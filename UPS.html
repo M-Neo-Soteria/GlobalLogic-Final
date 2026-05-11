@@ -555,6 +555,9 @@
         <div class="btn-group">
           <button class="btn-print" onclick="window.print()">🖨 Print</button>
           <button class="btn-csv" onclick="exportToCSV()">📊 Export CSV</button>
+          <button class="btn-save" id="load-btn" onclick="loadLatestData()" style="background: #0066cc;">
+            📥 Load Latest
+          </button>
           <button class="btn-save" onclick="saveData()">💾 Save</button>
         </div>
       </div>
@@ -694,23 +697,115 @@
         applyAllThresholds();
       }
 
-      function saveData() {
-        const date = document.getElementById("check-date").value;
-        const storageKey = `${SHEET_ID}_${date}`;
-        const data = {};
+      async function saveData() {
+        try {
+          disableSaveButton(true);
+          
+          const date = document.getElementById("check-date").value;
+          const upsNum = document.getElementById("ups-unit").value;
+          const storageKey = `${SHEET_ID}_${date}`;
+          const readings = [];
+          const data = {};
 
-        document.querySelectorAll("#data-body input").forEach((inp) => {
-          data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
-        });
+          document.querySelectorAll("#data-body input").forEach((inp) => {
+            data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
+          });
 
-        data["sig_sup"] = document.getElementById("sig-supervisor").value;
-        data["sig_emp"] = document.getElementById("sig-employee").value;
+          const supervisorName = document.getElementById("sig-supervisor").value;
+          const checkedBy = document.getElementById("sig-employee").value;
+          data["sig_sup"] = supervisorName;
+          data["sig_emp"] = checkedBy;
 
-        localStorage.setItem(storageKey, JSON.stringify(data));
+          // Collect readings for MongoDB
+          document.querySelectorAll("#data-body tr").forEach((row) => {
+            const inputs = row.querySelectorAll("input");
+            if (inputs.length > 0 && inputs[0].value) {
+              readings.push({
+                time: inputs[0].value,
+                inputVoltage: parseFloat(inputs[1]?.value) || null,
+                inputFrequency: parseFloat(inputs[2]?.value) || null,
+                batteryVoltage: parseFloat(inputs[3]?.value) || null,
+                batteryCapacity: parseFloat(inputs[4]?.value) || null,
+                outputVoltage: parseFloat(inputs[5]?.value) || null,
+                outputFrequency: parseFloat(inputs[6]?.value) || null,
+                outputPower: parseFloat(inputs[7]?.value) || null,
+                temperature: parseFloat(inputs[8]?.value) || null,
+                alarmStatus: inputs[9]?.value || "",
+                notes: inputs[10]?.value || ""
+              });
+            }
+          });
 
-        const btn = document.querySelector(".btn-save");
-        btn.textContent = "✓ Saved";
-        setTimeout(() => (btn.textContent = "💾 Save"), 1500);
+          // Save to MongoDB
+          const mongoData = {
+            date,
+            upsUnit: upsNum,
+            readings,
+            supervisorName,
+            checkedBy,
+            supervisorSignature: supervisorName
+          };
+
+          const response = await UPSAPI.save(mongoData);
+          
+          // Also save locally for backup
+          localStorage.setItem(storageKey, JSON.stringify(data));
+
+          if (response.success) {
+            showNotification(`✓ UPS checklist saved! ID: ${response.id}`, 'success');
+          } else {
+            showNotification(`✗ Error: ${response.message}`, 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('✗ Error saving data', 'error');
+        } finally {
+          disableSaveButton(false);
+        }
+      }
+
+      async function loadLatestData() {
+        try {
+          const upsNum = document.getElementById("ups-unit").value;
+          const response = await UPSAPI.getAll();
+          
+          if (response.success && response.data.length > 0) {
+            const filtered = response.data.filter(r => r.upsUnit === upsNum);
+            if (filtered.length === 0) {
+              showNotification(`No records found for UPS ${upsNum}`, 'info');
+              return;
+            }
+            
+            const latestRecord = filtered[0];
+            
+            const dateStr = latestRecord.date.split('T')[0];
+            document.getElementById("check-date").value = dateStr;
+            document.getElementById("ups-unit").value = latestRecord.upsUnit || upsNum;
+            
+            document.getElementById("sig-supervisor").value = latestRecord.supervisorName || "";
+            document.getElementById("sig-employee").value = latestRecord.checkedBy || "";
+            
+            if (latestRecord.readings && latestRecord.readings.length > 0) {
+              const tableRows = document.querySelectorAll("#data-body tr");
+              latestRecord.readings.forEach((reading, index) => {
+                if (tableRows[index]) {
+                  const inputs = tableRows[index].querySelectorAll("input");
+                  const fields = ['time', 'inputVoltage', 'inputFrequency', 'batteryVoltage', 'batteryCapacity',
+                                 'outputVoltage', 'outputFrequency', 'outputPower', 'temperature', 'alarmStatus', 'notes'];
+                  fields.forEach((field, i) => {
+                    if (inputs[i]) inputs[i].value = reading[field] || "";
+                  });
+                }
+              });
+              showNotification(`✓ Loaded UPS ${upsNum} data from ${dateStr}`, 'success');
+            }
+          } else {
+            showNotification('No saved records found', 'info');
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+          showNotification('✗ Error loading data', 'error');
+        }
       }
 
       function exportToCSV() {
@@ -775,5 +870,10 @@
       buildRows();
       loadDateData();
     </script>
+
+    <!-- MongoDB API Scripts -->
+    <script src="notification-helper.js"></script>
+    <script src="api-client.js"></script>
+    <script src="ups-handler.js"></script>
   </body>
 </html>

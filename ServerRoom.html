@@ -543,6 +543,9 @@
             <button class="btn-csv" onclick="exportToCSV()">
               📊 Export CSV
             </button>
+            <button class="btn-save" id="load-btn" onclick="loadLatestData()" style="background: #0066cc;">
+              📥 Load Latest
+            </button>
             <button class="btn-save" onclick="saveData()">💾 Save</button>
           </div>
         </div>
@@ -687,23 +690,99 @@
         applyAllThresholds();
       }
 
-      function saveData() {
-        const date = document.getElementById("check-date").value;
-        const storageKey = `${SHEET_ID}_${date}`;
-        const data = {};
+      async function saveData() {
+        try {
+          disableSaveButton(true);
+          
+          const date = document.getElementById("check-date").value;
+          const readings = [];
+          const storageKey = `${SHEET_ID}_${date}`;
+          const data = {};
 
-        document.querySelectorAll("#data-body input").forEach((inp) => {
-          data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
-        });
+          document.querySelectorAll("#data-body input").forEach((inp) => {
+            data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
+          });
 
-        data["sig_sup"] = document.getElementById("sig-supervisor").value;
-        data["sig_emp"] = document.getElementById("sig-employee").value;
+          const supervisorName = document.getElementById("sig-supervisor").value;
+          const checkedBy = document.getElementById("sig-employee").value;
+          data["sig_sup"] = supervisorName;
+          data["sig_emp"] = checkedBy;
 
-        localStorage.setItem(storageKey, JSON.stringify(data));
+          // Collect readings for MongoDB
+          document.querySelectorAll("#data-body tr").forEach((row) => {
+            const inputs = row.querySelectorAll("input");
+            if (inputs.length > 0 && inputs[0].value) {
+              readings.push({
+                time: inputs[0].value,
+                temperature: parseFloat(inputs[1]?.value) || null,
+                humidity: parseFloat(inputs[2]?.value) || null,
+                notes: inputs[3]?.value || ""
+              });
+            }
+          });
 
-        const btn = document.querySelector(".btn-save");
-        btn.textContent = "✓ Saved";
-        setTimeout(() => (btn.textContent = "💾 Save"), 1500);
+          // Save to MongoDB
+          const mongoData = {
+            date,
+            readings,
+            supervisorName,
+            checkedBy,
+            supervisorSignature: supervisorName
+          };
+
+          const response = await ServerRoomAPI.save(mongoData);
+          
+          // Also save locally for backup
+          localStorage.setItem(storageKey, JSON.stringify(data));
+
+          if (response.success) {
+            showNotification(`✓ Server Room checklist saved! ID: ${response.id}`, 'success');
+          } else {
+            showNotification(`✗ Error: ${response.message}`, 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('✗ Error saving data', 'error');
+        } finally {
+          disableSaveButton(false);
+        }
+      }
+
+      async function loadLatestData() {
+        try {
+          const response = await ServerRoomAPI.getAll();
+          
+          if (response.success && response.data.length > 0) {
+            const latestRecord = response.data[0];
+            
+            const dateStr = latestRecord.date.split('T')[0];
+            document.getElementById("check-date").value = dateStr;
+            
+            document.getElementById("sig-supervisor").value = latestRecord.supervisorName || "";
+            document.getElementById("sig-employee").value = latestRecord.checkedBy || "";
+            
+            if (latestRecord.readings && latestRecord.readings.length > 0) {
+              const tableRows = document.querySelectorAll("#data-body tr");
+              latestRecord.readings.forEach((reading, index) => {
+                if (tableRows[index]) {
+                  const inputs = tableRows[index].querySelectorAll("input");
+                  if (inputs[0]) inputs[0].value = reading.time || "";
+                  if (inputs[1]) inputs[1].value = reading.temperature || "";
+                  if (inputs[2]) inputs[2].value = reading.humidity || "";
+                  if (inputs[3]) inputs[3].value = reading.notes || "";
+                  if (inputs[0]) checkThreshold(inputs[0]);
+                  if (inputs[1]) checkThreshold(inputs[1]);
+                }
+              });
+              showNotification(`✓ Loaded latest record from ${dateStr}`, 'success');
+            }
+          } else {
+            showNotification('No saved records found', 'info');
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+          showNotification('✗ Error loading data', 'error');
+        }
       }
 
       function exportToCSV() {
@@ -750,5 +829,10 @@
       buildRows();
       loadDateData();
     </script>
+
+    <!-- MongoDB API Scripts -->
+    <script src="notification-helper.js"></script>
+    <script src="api-client.js"></script>
+    <script src="serverroom-handler.js"></script>
   </body>
 </html>

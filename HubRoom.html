@@ -490,6 +490,9 @@
         <div class="btn-group">
           <button class="btn-print" onclick="window.print()">🖨 Print</button>
           <button class="btn-csv" onclick="exportToCSV()">📊 Export CSV</button>
+          <button class="btn-save" id="load-btn" onclick="loadLatestData()" style="background: #0066cc;">
+            📥 Load Latest
+          </button>
           <button class="btn-save" id="save-btn" onclick="saveData()">
             💾 Save
           </button>
@@ -669,9 +672,53 @@
         .split("T")[0];
       buildRows();
       loadDateData();
+
+      // Load latest data from MongoDB
+      async function loadLatestData() {
+        try {
+          const response = await HubRoomAPI.getAll();
+          
+          if (response.success && response.data.length > 0) {
+            const latestRecord = response.data[0]; // Most recent first
+            
+            // Set date
+            const dateStr = latestRecord.date.split('T')[0];
+            document.getElementById("check-date").value = dateStr;
+            
+            // Set signatures
+            document.getElementById("sig-supervisor").value = latestRecord.supervisorName || "";
+            document.getElementById("sig-employee").value = latestRecord.checkedBy || "";
+            
+            // Load readings into table
+            if (latestRecord.readings && latestRecord.readings.length > 0) {
+              const tableRows = document.querySelectorAll("table tbody tr");
+              latestRecord.readings.forEach((reading, index) => {
+                if (tableRows[index]) {
+                  const inputs = tableRows[index].querySelectorAll("input");
+                  if (inputs[0]) inputs[0].value = reading.time || "";
+                  if (inputs[1]) inputs[1].value = reading.temperature || "";
+                  if (inputs[2]) inputs[2].value = reading.notes || "";
+                  // Apply threshold colors
+                  if (inputs[1]) applyThreshold(inputs[1]);
+                }
+              });
+              
+              showNotification(`✓ Loaded latest record from ${dateStr}`, 'success');
+            } else {
+              showNotification('No readings found in latest record', 'info');
+            }
+          } else {
+            showNotification('No saved records found', 'info');
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+          showNotification('✗ Error loading data', 'error');
+        }
+      }
     </script>
 
     <!-- MongoDB API Scripts -->
+    <script src="notification-helper.js"></script>
     <script src="api-client.js"></script>
     <script src="hubroom-handler.js"></script>
   </body>
