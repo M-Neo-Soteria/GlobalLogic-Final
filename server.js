@@ -94,7 +94,8 @@ const upsSchema = new mongoose.Schema({
     col15: mongoose.Schema.Types.Mixed,
     col16: mongoose.Schema.Types.Mixed,
     col17: mongoose.Schema.Types.Mixed,
-    col18: mongoose.Schema.Types.Mixed
+    col18: mongoose.Schema.Types.Mixed,
+    col19: mongoose.Schema.Types.Mixed
   }],
   checkedBy: String,
   supervisorName: String,

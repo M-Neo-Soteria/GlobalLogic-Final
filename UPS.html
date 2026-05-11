@@ -654,8 +654,8 @@
         "22:00",
       ];
 
-      const COL_COUNT = 19;
-      const SIG_COL = 18;
+      const COL_COUNT = 20;
+      const SIG_COL = 19;
 
       // Hardcoded Threshold Mapping (Format: Col Index -> [Min, Max])
       const THRESHOLDS = {
@@ -786,7 +786,7 @@
           data["sig_sup"] = supervisorName;
           data["sig_emp"] = checkedBy;
 
-          // Collect readings for MongoDB - capture all 19 columns
+          // Collect readings for MongoDB - capture all 20 columns
           const timeLabels = document.querySelectorAll(".time-label");
           document.querySelectorAll("#data-body tr").forEach((row, index) => {
             const inputs = row.querySelectorAll("input");
@@ -802,12 +802,12 @@
             }
             
             if (hasData) {
-              // Create reading object with all 19 fields
+              // Create reading object with all 20 fields
               const reading = { time: timeLabel };
               for (let i = 0; i < inputs.length; i++) {
                 const val = inputs[i].value;
-                // Signature column (18) is text, others are numeric
-                reading[`col${i}`] = (i === 18) ? val : (parseFloat(val) || null);
+                // Signature column (19) is text, others are numeric
+                reading[`col${i}`] = (i === 19) ? val : (parseFloat(val) || null);
               }
               readings.push(reading);
             }
