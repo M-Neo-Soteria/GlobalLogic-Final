@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily UPS Health Check – GL02-FM-ES (M&E)-007</title>
   <style>
+    /* Base Styles for the Facility Checklist */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -132,6 +133,7 @@
       font-weight: 600;
     }
 
+    /* Table Styles */
     .table-wrap {
       overflow-x: auto;
       flex-grow: 1;
@@ -168,6 +170,7 @@
       background: transparent;
     }
 
+    /* Conditional Formatting */
     td.val-high {
       background-color: #ffe6e6 !important;
     }
@@ -203,9 +206,7 @@
     }
 
     @media print {
-
-      .navbar,
-      .footer {
+      .navbar {
         display: none;
       }
 
@@ -219,11 +220,11 @@
 
 <body>
   <div class="navbar">
-    <div class="navbar-title">⚡ Digital UPS Checklist</div>
+    <div class="navbar-title">⚡ UPS Checklist (Digital)</div>
     <div class="navbar-buttons">
       <button class="navbar-btn" onclick="window.print()">🖨 Print</button>
       <button class="navbar-btn" onclick="exportToCSV()">📊 Export CSV</button>
-      <button class="navbar-btn" id="load-btn" onclick="loadLatestData()">📥 Load Latest</button>
+      <button class="navbar-btn" onclick="loadLatestData()">📥 Load Latest</button>
       <button class="navbar-btn" onclick="saveData()">💾 Save Data</button>
       <button class="navbar-btn home" onclick="window.location.href='index.html'">🏠 Home</button>
     </div>
@@ -237,22 +238,23 @@
         <div class="doc-cell">GL02-FM-ES (M&E)-007</div>
       </div>
       <div class="address-banner">
-        GlobalLogic Entity Name : GlobalLogic India Private Limited, Facility Address: Tower-3, Oxygen Business Park
-        Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
+        Facility Address: Tower-3, Oxygen Business Park Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
       </div>
+
       <div class="subheader">
         <div class="capacity-cell">
           UPS Capacity 80 KVA | Unit:
           <select id="ups-unit" onchange="loadDateData()">
-            <option value="1">UPS 1</option>
+            <option value="1" selected>UPS 1</option>
             <option value="2">UPS 2</option>
             <option value="3">UPS 3</option>
             <option value="4">UPS 4</option>
             <option value="5">UPS 5</option>
           </select>
         </div>
-        <div style="padding:10px; font-weight:600;">Date: <input type="date" id="check-date"
-            onchange="loadDateData()" /></div>
+        <div style="padding:10px; font-weight:600;">
+          Date: <input type="date" id="check-date" onchange="loadDateData()" />
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -268,7 +270,7 @@
               <th rowspan="2" style="width: 45px">O/P KW</th>
               <th rowspan="2" style="width: 40px">Hz</th>
               <th colspan="2">Battery</th>
-              <th rowspan="2" style="width: 70px">Room Temp. (°C)</th>
+              <th rowspan="2" style="width: 70px">Room Temp. in °C (22 to 24)</th>
               <th rowspan="2" style="width: 100px">Technician Signature</th>
             </tr>
             <tr>
@@ -292,7 +294,7 @@
         </table>
       </div>
 
-      <div class="sig-section" id="sig-section">
+      <div class="sig-section">
         <div>Supervisor Signature: <input type="text" id="sig-supervisor" class="sig-input" placeholder="Name" /></div>
         <div>Employee Services Signature: <input type="text" id="sig-employee" class="sig-input" placeholder="Name" />
         </div>
@@ -304,32 +306,35 @@
   <script src="api-client.js"></script>
   <script>
     const TIMES = ["0:00", "2:00", "4:00", "6:00", "8:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
-    const COL_COUNT = 20; // 0-18 are metrics, 19 is Signature
+    const COL_COUNT = 20; // 19 data columns + 1 signature column
 
+    /* Thresholds matching your requirements */
     const THRESHOLDS = {
       0: [355, 455], 1: [355, 455], 2: [355, 455], // Input V
       6: [396, 404], 7: [396, 404], 8: [396, 404], // Output V
       14: [48, 52],   // Hz
-      15: [432, 462], // Battery V
+      15: [432, 462], // Battery Volt
       17: [22, 24]    // Temp
     };
 
+    /* Build table rows with exactly 20 columns */
     function buildRows() {
       const tbody = document.getElementById("data-body");
       tbody.innerHTML = "";
       TIMES.forEach((t, ri) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td class="time-label" style="font-weight:600; background:#f2f2f2;">${t}</td>` +
-          Array.from({ length: COL_COUNT }, (_, ci) =>
-            `<td><input type="text" data-row="${ri}" data-col="${ci}" oninput="validate(this)"></td>`
-          ).join('');
+        let html = `<td class="time-label" style="font-weight:600; background:#f2f2f2;">${t}</td>`;
+        for (let ci = 0; ci < COL_COUNT; ci++) {
+          html += `<td><input type="text" data-row="${ri}" data-col="${ci}" oninput="validate(this)"></td>`;
+        }
+        tr.innerHTML = html;
         tbody.appendChild(tr);
       });
     }
 
     function validate(input) {
       const col = parseInt(input.dataset.col);
-      if (col < 19) { // Metric columns: only allow numbers/decimals
+      if (col < 19) { // Only metrics are numeric
         input.value = input.value.replace(/[^0-9.]/g, "");
         checkThreshold(input);
       }
@@ -347,25 +352,25 @@
       }
     }
 
+    /* Save data to MongoDB matching the col0-col19 schema */
     async function saveData() {
       try {
-        disableSaveButton(true);
-        const readings = [];
         const rows = document.querySelectorAll("#data-body tr");
+        const readings = [];
 
-        rows.forEach((row, ri) => {
+        rows.forEach((row) => {
           const inputs = row.querySelectorAll("input");
           const reading = { time: row.querySelector(".time-label").textContent };
-          let hasData = false;
+          let rowHasData = false;
 
           inputs.forEach((inp, ci) => {
             const val = inp.value.trim();
-            if (val) hasData = true;
-            // Match col0-col19 format from server.js
+            if (val) rowHasData = true;
+            // col19 is Signature (text), others are Number
             reading[`col${ci}`] = (ci === 19) ? val : (parseFloat(val) || null);
           });
 
-          if (hasData) readings.push(reading);
+          if (rowHasData) readings.push(reading);
         });
 
         const data = {
@@ -379,44 +384,38 @@
 
         const response = await UPSAPI.save(data);
         if (response.success) {
-          showNotification("✓ UPS data saved successfully", "success");
+          showNotification("✓ Data saved successfully", "success");
           localStorage.setItem(`UPS_${data.upsUnit}_${data.date}`, JSON.stringify(data));
         } else {
           showNotification("✗ Save failed: " + response.message, "error");
         }
       } catch (e) {
-        console.error(e);
         showNotification("✗ Error during save", "error");
-      } finally {
-        disableSaveButton(false);
       }
     }
 
+    /* Load data function matching colX schema */
     async function loadLatestData() {
-      try {
-        const upsNum = document.getElementById("ups-unit").value;
-        const response = await UPSAPI.getAll();
+      const upsNum = document.getElementById("ups-unit").value;
+      const response = await UPSAPI.getAll();
 
-        if (response.success && response.data.length > 0) {
-          const record = response.data.find(r => r.upsUnit === upsNum) || response.data[0];
-          document.getElementById("check-date").value = record.date.split('T')[0];
-          document.getElementById("sig-supervisor").value = record.supervisorName || "";
-          document.getElementById("sig-employee").value = record.checkedBy || "";
+      if (response.success && response.data.length > 0) {
+        const record = response.data.find(r => r.upsUnit === upsNum) || response.data[0];
+        document.getElementById("check-date").value = record.date.split('T')[0];
+        document.getElementById("sig-supervisor").value = record.supervisorName || "";
+        document.getElementById("sig-employee").value = record.checkedBy || "";
 
-          const rows = document.querySelectorAll("#data-body tr");
-          record.readings.forEach((rd, ri) => {
-            if (rows[ri]) {
-              const inputs = rows[ri].querySelectorAll("input");
-              inputs.forEach((inp, ci) => {
-                inp.value = rd[`col${ci}`] ?? "";
-                checkThreshold(inp);
-              });
-            }
-          });
-          showNotification("✓ Loaded data for UPS " + record.upsUnit);
-        }
-      } catch (e) {
-        showNotification("✗ Error loading latest data", "error");
+        const rows = document.querySelectorAll("#data-body tr");
+        record.readings.forEach((rd, ri) => {
+          if (rows[ri]) {
+            const inputs = rows[ri].querySelectorAll("input");
+            inputs.forEach((inp, ci) => {
+              inp.value = rd[`col${ci}`] ?? "";
+              checkThreshold(inp);
+            });
+          }
+        });
+        showNotification("✓ Data loaded for UPS " + record.upsUnit);
       }
     }
 
@@ -433,12 +432,12 @@
     function exportToCSV() {
       const date = document.getElementById("check-date").value;
       const upsNum = document.getElementById("ups-unit").value;
-      let csv = [`Daily UPS (Unit ${upsNum}) Health Check - ${date}\n`];
-      const headers = ["Time", "I/P RY", "I/P YB", "I/P BR", "I/P IR", "I/P IY", "I/P IB", "O/P RY", "O/P YB", "O/P BR", "O/P IR", "O/P IY", "O/P IB", "KVA", "KW", "Hz", "Batt V", "Batt A", "Temp", "Signature"];
+      let csv = [`UPS (Unit ${upsNum}) Report - ${date}\n`];
+      const headers = ["Time", "I/P RY", "I/P YB", "I/P BR", "I/P IR", "I/P IY", "I/P IB", "O/P RY", "O/P YB", "O/P BR", "O/P IR", "O/P IY", "O/P IB", "KVA", "KW", "Hz", "Volt", "A", "Temp", "Signature"];
       csv.push(headers.join(","));
       document.querySelectorAll("#data-body tr").forEach(row => {
         const rowData = [row.querySelector(".time-label").textContent];
-        row.querySelectorAll("input").forEach(inp => rowData.push(inp.value));
+        row.querySelectorAll("input").forEach(inp => rowData.push(`"${inp.value}"`));
         csv.push(rowData.join(","));
       });
       const blob = new Blob([csv.join("\n")], { type: "text/csv" });
@@ -448,6 +447,7 @@
       link.click();
     }
 
+    /* Initialization */
     document.getElementById("check-date").value = new Date().toISOString().split("T")[0];
     buildRows();
   </script>
