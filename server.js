@@ -41,6 +41,7 @@ const hubRoomSchema = new mongoose.Schema({
     time: String,
     temperature: Number,
     humidity: Number,
+    signature: String,
     notes: String
   }],
   checkedBy: String,
@@ -59,6 +60,7 @@ const serverRoomSchema = new mongoose.Schema({
     humidity: Number,
     airFlow: String,
     cableManagement: String,
+    signature: String,
     notes: String
   }],
   checkedBy: String,
@@ -83,6 +85,7 @@ const upsSchema = new mongoose.Schema({
     outputPower: Number,
     temperature: Number,
     alarmStatus: String,
+    signature: String,
     notes: String
   }],
   checkedBy: String,
