@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily UPS Health Check – GL02-FM-ES (M&E)-007</title>
   <style>
-    /* Styles preserved from original source */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -119,6 +118,7 @@
       border-bottom: 1px solid #bbb;
       text-align: center;
       font-weight: 600;
+      font-size: 11px;
     }
 
     .subheader {
@@ -139,7 +139,7 @@
 
     table {
       width: 100%;
-      min-width: 1000px;
+      min-width: 1100px;
       border-collapse: collapse;
       table-layout: fixed;
     }
@@ -154,7 +154,7 @@
 
     tbody tr td {
       border: 1px solid #bbb;
-      height: 26px;
+      height: 28px;
       text-align: center;
     }
 
@@ -189,7 +189,8 @@
     .sig-section {
       display: flex;
       justify-content: space-between;
-      padding: 30px 40px;
+      padding: 20px 40px;
+      border-top: 1px solid #eee;
     }
 
     .sig-input {
@@ -198,6 +199,7 @@
       width: 220px;
       text-align: center;
       outline: none;
+      background: transparent;
     }
 
     @media print {
@@ -217,11 +219,11 @@
 
 <body>
   <div class="navbar">
-    <div class="navbar-title">⚡ UPS Checklist (Digital)</div>
+    <div class="navbar-title">⚡ Digital UPS Checklist</div>
     <div class="navbar-buttons">
       <button class="navbar-btn" onclick="window.print()">🖨 Print</button>
       <button class="navbar-btn" onclick="exportToCSV()">📊 Export CSV</button>
-      <button class="navbar-btn" onclick="loadLatestData()">📥 Load Latest</button>
+      <button class="navbar-btn" id="load-btn" onclick="loadLatestData()">📥 Load Latest</button>
       <button class="navbar-btn" onclick="saveData()">💾 Save Data</button>
       <button class="navbar-btn home" onclick="window.location.href='index.html'">🏠 Home</button>
     </div>
@@ -235,7 +237,8 @@
         <div class="doc-cell">GL02-FM-ES (M&E)-007</div>
       </div>
       <div class="address-banner">
-        GlobalLogic India Pvt. Ltd, Tower-3, Oxygen Business Park, Noida (UP)
+        GlobalLogic Entity Name : GlobalLogic India Private Limited, Facility Address: Tower-3, Oxygen Business Park
+        Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
       </div>
       <div class="subheader">
         <div class="capacity-cell">
@@ -248,11 +251,12 @@
             <option value="5">UPS 5</option>
           </select>
         </div>
-        <div style="padding:10px;">Date: <input type="date" id="check-date" onchange="loadDateData()" /></div>
+        <div style="padding:10px; font-weight:600;">Date: <input type="date" id="check-date"
+            onchange="loadDateData()" /></div>
       </div>
 
       <div class="table-wrap">
-        <table>
+        <table id="checklist">
           <thead>
             <tr>
               <th rowspan="2" style="width: 55px">Time</th>
@@ -265,7 +269,7 @@
               <th rowspan="2" style="width: 40px">Hz</th>
               <th colspan="2">Battery</th>
               <th rowspan="2" style="width: 70px">Room Temp. (°C)</th>
-              <th rowspan="2" style="width: 100px">Technician Sign</th>
+              <th rowspan="2" style="width: 100px">Technician Signature</th>
             </tr>
             <tr>
               <th>RY</th>
@@ -288,9 +292,10 @@
         </table>
       </div>
 
-      <div class="sig-section">
-        <div>Supervisor: <input type="text" id="sig-supervisor" class="sig-input" placeholder="Name" /></div>
-        <div>Employee Services: <input type="text" id="sig-employee" class="sig-input" placeholder="Name" /></div>
+      <div class="sig-section" id="sig-section">
+        <div>Supervisor Signature: <input type="text" id="sig-supervisor" class="sig-input" placeholder="Name" /></div>
+        <div>Employee Services Signature: <input type="text" id="sig-employee" class="sig-input" placeholder="Name" />
+        </div>
       </div>
     </div>
   </div>
@@ -299,7 +304,7 @@
   <script src="api-client.js"></script>
   <script>
     const TIMES = ["0:00", "2:00", "4:00", "6:00", "8:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
-    const COL_COUNT = 20; // Matches DB Schema col0-col19
+    const COL_COUNT = 20; // 0-18 are metrics, 19 is Signature
 
     const THRESHOLDS = {
       0: [355, 455], 1: [355, 455], 2: [355, 455], // Input V
@@ -314,7 +319,7 @@
       tbody.innerHTML = "";
       TIMES.forEach((t, ri) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td class="time-label">${t}</td>` +
+        tr.innerHTML = `<td class="time-label" style="font-weight:600; background:#f2f2f2;">${t}</td>` +
           Array.from({ length: COL_COUNT }, (_, ci) =>
             `<td><input type="text" data-row="${ri}" data-col="${ci}" oninput="validate(this)"></td>`
           ).join('');
@@ -324,7 +329,7 @@
 
     function validate(input) {
       const col = parseInt(input.dataset.col);
-      if (col < 19) {
+      if (col < 19) { // Metric columns: only allow numbers/decimals
         input.value = input.value.replace(/[^0-9.]/g, "");
         checkThreshold(input);
       }
@@ -343,77 +348,104 @@
     }
 
     async function saveData() {
-      disableSaveButton(true);
-      const readings = [];
-      const rows = document.querySelectorAll("#data-body tr");
+      try {
+        disableSaveButton(true);
+        const readings = [];
+        const rows = document.querySelectorAll("#data-body tr");
 
-      rows.forEach((row, ri) => {
-        const inputs = row.querySelectorAll("input");
-        const reading = { time: row.querySelector(".time-label").textContent };
-        let hasData = false;
+        rows.forEach((row, ri) => {
+          const inputs = row.querySelectorAll("input");
+          const reading = { time: row.querySelector(".time-label").textContent };
+          let hasData = false;
 
-        inputs.forEach((inp, ci) => {
-          const val = inp.value.trim();
-          if (val) hasData = true;
-          // Map directly to col0, col1, etc. to match server.js
-          reading[`col${ci}`] = (ci === 19) ? val : (parseFloat(val) || null);
+          inputs.forEach((inp, ci) => {
+            const val = inp.value.trim();
+            if (val) hasData = true;
+            // Match col0-col19 format from server.js
+            reading[`col${ci}`] = (ci === 19) ? val : (parseFloat(val) || null);
+          });
+
+          if (hasData) readings.push(reading);
         });
 
-        if (hasData) readings.push(reading);
-      });
+        const data = {
+          date: document.getElementById("check-date").value,
+          upsUnit: document.getElementById("ups-unit").value,
+          readings,
+          supervisorName: document.getElementById("sig-supervisor").value,
+          checkedBy: document.getElementById("sig-employee").value,
+          supervisorSignature: document.getElementById("sig-supervisor").value
+        };
 
-      const data = {
-        date: document.getElementById("check-date").value,
-        upsUnit: document.getElementById("ups-unit").value,
-        readings,
-        supervisorName: document.getElementById("sig-supervisor").value,
-        checkedBy: document.getElementById("sig-employee").value,
-        supervisorSignature: document.getElementById("sig-supervisor").value
-      };
-
-      const response = await UPSAPI.save(data);
-      if (response.success) {
-        showNotification("✓ UPS data saved to MongoDB", "success");
-        localStorage.setItem(`UPS_LOCAL_${data.date}_${data.upsUnit}`, JSON.stringify(data));
-      } else {
-        showNotification("✗ Save failed: " + response.message, "error");
+        const response = await UPSAPI.save(data);
+        if (response.success) {
+          showNotification("✓ UPS data saved successfully", "success");
+          localStorage.setItem(`UPS_${data.upsUnit}_${data.date}`, JSON.stringify(data));
+        } else {
+          showNotification("✗ Save failed: " + response.message, "error");
+        }
+      } catch (e) {
+        console.error(e);
+        showNotification("✗ Error during save", "error");
+      } finally {
+        disableSaveButton(false);
       }
-      disableSaveButton(false);
     }
 
     async function loadLatestData() {
-      const upsNum = document.getElementById("ups-unit").value;
-      const response = await UPSAPI.getAll();
+      try {
+        const upsNum = document.getElementById("ups-unit").value;
+        const response = await UPSAPI.getAll();
 
-      if (response.success && response.data.length > 0) {
-        const record = response.data.find(r => r.upsUnit === upsNum) || response.data[0];
-        document.getElementById("check-date").value = record.date.split('T')[0];
-        document.getElementById("sig-supervisor").value = record.supervisorName || "";
-        document.getElementById("sig-employee").value = record.checkedBy || "";
+        if (response.success && response.data.length > 0) {
+          const record = response.data.find(r => r.upsUnit === upsNum) || response.data[0];
+          document.getElementById("check-date").value = record.date.split('T')[0];
+          document.getElementById("sig-supervisor").value = record.supervisorName || "";
+          document.getElementById("sig-employee").value = record.checkedBy || "";
 
-        const rows = document.querySelectorAll("#data-body tr");
-        record.readings.forEach((rd, ri) => {
-          if (rows[ri]) {
-            const inputs = rows[ri].querySelectorAll("input");
-            inputs.forEach((inp, ci) => {
-              inp.value = rd[`col${ci}`] ?? "";
-              checkThreshold(inp);
-            });
-          }
-        });
-        showNotification("✓ Data loaded for UPS " + record.upsUnit);
+          const rows = document.querySelectorAll("#data-body tr");
+          record.readings.forEach((rd, ri) => {
+            if (rows[ri]) {
+              const inputs = rows[ri].querySelectorAll("input");
+              inputs.forEach((inp, ci) => {
+                inp.value = rd[`col${ci}`] ?? "";
+                checkThreshold(inp);
+              });
+            }
+          });
+          showNotification("✓ Loaded data for UPS " + record.upsUnit);
+        }
+      } catch (e) {
+        showNotification("✗ Error loading latest data", "error");
       }
     }
 
     function loadDateData() {
       const date = document.getElementById("check-date").value;
       const unit = document.getElementById("ups-unit").value;
-      const local = JSON.parse(localStorage.getItem(`UPS_LOCAL_${date}_${unit}`) || "null");
+      const local = JSON.parse(localStorage.getItem(`UPS_${unit}_${date}`) || "null");
       if (local) {
-        document.getElementById("sig-supervisor").value = local.supervisorName;
-        document.getElementById("sig-employee").value = local.checkedBy;
-        // Populate table logic...
+        document.getElementById("sig-supervisor").value = local.supervisorName || "";
+        document.getElementById("sig-employee").value = local.checkedBy || "";
       }
+    }
+
+    function exportToCSV() {
+      const date = document.getElementById("check-date").value;
+      const upsNum = document.getElementById("ups-unit").value;
+      let csv = [`Daily UPS (Unit ${upsNum}) Health Check - ${date}\n`];
+      const headers = ["Time", "I/P RY", "I/P YB", "I/P BR", "I/P IR", "I/P IY", "I/P IB", "O/P RY", "O/P YB", "O/P BR", "O/P IR", "O/P IY", "O/P IB", "KVA", "KW", "Hz", "Batt V", "Batt A", "Temp", "Signature"];
+      csv.push(headers.join(","));
+      document.querySelectorAll("#data-body tr").forEach(row => {
+        const rowData = [row.querySelector(".time-label").textContent];
+        row.querySelectorAll("input").forEach(inp => rowData.push(inp.value));
+        csv.push(rowData.join(","));
+      });
+      const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `UPS_${upsNum}_${date}.csv`;
+      link.click();
     }
 
     document.getElementById("check-date").value = new Date().toISOString().split("T")[0];
