@@ -783,15 +783,9 @@
                     inputs[1].value = reading.temperature || "";
                     checkThreshold(inputs[1]);
                   }
-                  if (inputs[2]) {
-                    inputs[2].value = reading.humidity || "";
-                  }
-                  if (inputs[3]) {
-                    inputs[3].value = reading.signature || "";
-                  }
-                  if (inputs[4]) {
-                    inputs[4].value = reading.notes || "";
-                  }
+                  if (inputs[2]) inputs[2].value = reading.humidity || "";
+                  if (inputs[3]) inputs[3].value = reading.signature || "";
+                  if (inputs[4]) inputs[4].value = reading.notes || "";
                 }
               });
               showNotification(`✓ Loaded latest record from ${dateStr}`, 'success');

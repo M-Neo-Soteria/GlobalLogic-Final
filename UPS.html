@@ -793,17 +793,11 @@
               latestRecord.readings.forEach((reading, index) => {
                 if (tableRows[index]) {
                   const inputs = tableRows[index].querySelectorAll("input");
-                  // Load all 19 input fields (col1-col18, plus time at col0)
                   inputs.forEach((inp, colIndex) => {
                     if (colIndex === 0) {
-                      // Time field
                       inp.value = reading.time || "";
-                    } else if (colIndex === 18) {
-                      // Signature column - NO threshold checking
-                      inp.value = reading[`col${colIndex}`] || "";
                     } else {
-                      // All other numeric fields
-                      inp.value = reading[`col${colIndex}`] || "";
+                      inp.value = (reading[`col${colIndex}`] !== undefined ? reading[`col${colIndex}`] : "") || "";
                     }
                   });
                 }
