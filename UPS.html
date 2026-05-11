@@ -717,12 +717,14 @@
           data["sig_emp"] = checkedBy;
 
           // Collect readings for MongoDB - capture all 19 columns
-          document.querySelectorAll("#data-body tr").forEach((row) => {
+          const timeLabels = document.querySelectorAll(".time-label");
+          document.querySelectorAll("#data-body tr").forEach((row, index) => {
             const inputs = row.querySelectorAll("input");
-            if (inputs.length > 0 && inputs[0].value) {
+            const timeLabel = timeLabels[index]?.textContent || "";
+            if (inputs.length > 0 && (inputs[0].value || inputs[1]?.value || inputs[2]?.value)) {
               // Create reading object with all 19 fields
-              const reading = { time: inputs[0].value };
-              for (let i = 1; i < inputs.length; i++) {
+              const reading = { time: timeLabel };
+              for (let i = 0; i < inputs.length; i++) {
                 const val = inputs[i].value;
                 // Signature column (18) is text, others are numeric
                 reading[`col${i}`] = (i === 18) ? val : (parseFloat(val) || null);
@@ -794,11 +796,7 @@
                 if (tableRows[index]) {
                   const inputs = tableRows[index].querySelectorAll("input");
                   inputs.forEach((inp, colIndex) => {
-                    if (colIndex === 0) {
-                      inp.value = reading.time || "";
-                    } else {
-                      inp.value = (reading[`col${colIndex}`] !== undefined ? reading[`col${colIndex}`] : "") || "";
-                    }
+                    inp.value = (reading[`col${colIndex}`] !== undefined ? reading[`col${colIndex}`] : "") || "";
                   });
                 }
               });

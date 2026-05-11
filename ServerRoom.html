@@ -709,15 +709,17 @@
           data["sig_emp"] = checkedBy;
 
           // Collect readings for MongoDB
-          document.querySelectorAll("#data-body tr").forEach((row) => {
+          const timeLabels = document.querySelectorAll(".time-label");
+          document.querySelectorAll("#data-body tr").forEach((row, index) => {
             const inputs = row.querySelectorAll("input");
-            if (inputs.length > 0 && inputs[0].value) {
+            const timeLabel = timeLabels[index]?.textContent || "";
+            if (inputs.length >= 4) {
               readings.push({
-                time: inputs[0].value,
-                temperature: parseFloat(inputs[1]?.value) || null,
-                humidity: parseFloat(inputs[2]?.value) || null,
-                signature: inputs[3]?.value || "",
-                notes: inputs[4]?.value || ""
+                time: timeLabel,
+                temperature: parseFloat(inputs[TEMP_COL]?.value) || null,
+                humidity: parseFloat(inputs[HUM_COL]?.value) || null,
+                signature: inputs[SIG_COL]?.value || "",
+                notes: inputs[REMARKS_COL]?.value || ""
               });
             }
           });
@@ -775,17 +777,16 @@
               latestRecord.readings.forEach((reading, index) => {
                 if (tableRows[index]) {
                   const inputs = tableRows[index].querySelectorAll("input");
-                  if (inputs[0]) {
-                    inputs[0].value = reading.time || "";
-                    checkThreshold(inputs[0]);
+                  if (inputs[TEMP_COL]) {
+                    inputs[TEMP_COL].value = reading.temperature || "";
+                    checkThreshold(inputs[TEMP_COL]);
                   }
-                  if (inputs[1]) {
-                    inputs[1].value = reading.temperature || "";
-                    checkThreshold(inputs[1]);
+                  if (inputs[HUM_COL]) {
+                    inputs[HUM_COL].value = reading.humidity || "";
+                    checkThreshold(inputs[HUM_COL]);
                   }
-                  if (inputs[2]) inputs[2].value = reading.humidity || "";
-                  if (inputs[3]) inputs[3].value = reading.signature || "";
-                  if (inputs[4]) inputs[4].value = reading.notes || "";
+                  if (inputs[SIG_COL]) inputs[SIG_COL].value = reading.signature || "";
+                  if (inputs[REMARKS_COL]) inputs[REMARKS_COL].value = reading.notes || "";
                 }
               });
               showNotification(`✓ Loaded latest record from ${dateStr}`, 'success');
