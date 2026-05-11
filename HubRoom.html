@@ -560,19 +560,54 @@
 
 
 
-      function saveData() {
-        const date = document.getElementById("check-date").value;
-        const data = {};
-        document.querySelectorAll("input[data-row]").forEach((inp) => {
-          data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
-        });
-        data["sig_sup"] = document.getElementById("sig-supervisor").value;
-        data["sig_emp"] = document.getElementById("sig-employee").value;
-        localStorage.setItem(`${SHEET_ID}_${date}`, JSON.stringify(data));
+      async function saveData() {
+        try {
+          disableSaveButton(true);
+          
+          const date = document.getElementById("check-date").value;
+          
+          // Collect readings from table
+          const readings = [];
+          document.querySelectorAll("table tbody tr").forEach((row) => {
+            const inputs = row.querySelectorAll("input");
+            if (inputs.length > 0 && inputs[0].value) {
+              readings.push({
+                time: inputs[0].value,
+                temperature: parseFloat(inputs[1]?.value) || null,
+                notes: inputs[2]?.value || ""
+              });
+            }
+          });
 
-        const btn = document.getElementById("save-btn");
-        btn.textContent = "✓ Saved";
-        setTimeout(() => (btn.textContent = "💾 Save"), 1500);
+          const data = {
+            date,
+            readings,
+            supervisorName: document.getElementById("sig-supervisor").value,
+            checkedBy: document.getElementById("sig-employee").value,
+            supervisorSignature: document.getElementById("sig-supervisor").value
+          };
+
+          const response = await HubRoomAPI.save(data);
+          
+          if (response.success) {
+            showNotification(`✓ Hub Room checklist saved successfully! ID: ${response.id}`, 'success');
+            // Also save locally for backup
+            const localData = {};
+            document.querySelectorAll("input[data-row]").forEach((inp) => {
+              localData[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
+            });
+            localData["sig_sup"] = document.getElementById("sig-supervisor").value;
+            localData["sig_emp"] = document.getElementById("sig-employee").value;
+            localStorage.setItem(`${SHEET_ID}_${date}`, JSON.stringify(localData));
+          } else {
+            showNotification(`✗ Error: ${response.message}`, 'error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showNotification('✗ Error saving data', 'error');
+        } finally {
+          disableSaveButton(false);
+        }
       }
 
       function loadDateData() {
@@ -635,5 +670,9 @@
       buildRows();
       loadDateData();
     </script>
+
+    <!-- MongoDB API Scripts -->
+    <script src="api-client.js"></script>
+    <script src="hubroom-handler.js"></script>
   </body>
 </html>

@@ -1,0 +1,521 @@
+/**
+ * Dashboard - View and Manage All Checklist Records
+ * Open dashboard.html in browser to view all saved data
+ */
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facility Checklist Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .records-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .record-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .record-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .record-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .record-info {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .record-info strong {
+            color: #333;
+        }
+
+        .record-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-view {
+            background: #667eea;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-view:hover {
+            background: #5568d3;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-box .number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-box .label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-close {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .btn-close:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 768px) {
+            .records-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Facility Checklist Dashboard</h1>
+            <p>View and manage all checklist records</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('hubroom')">🏢 Hub Room</button>
+            <button class="tab-btn" onclick="switchTab('serverroom')">🖥️ Server Room</button>
+            <button class="tab-btn" onclick="switchTab('ups')">⚡ UPS</button>
+        </div>
+
+        <!-- HUB ROOM TAB -->
+        <div id="hubroom" class="tab-content active">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number" id="hubroom-count">0</div>
+                    <div class="label">Total Records</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="hubroom-latest">-</div>
+                    <div class="label">Latest Record</div>
+                </div>
+            </div>
+            <div id="hubroom-records" class="records-grid">
+                <div class="loading">Loading Hub Room records...</div>
+            </div>
+        </div>
+
+        <!-- SERVER ROOM TAB -->
+        <div id="serverroom" class="tab-content">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number" id="serverroom-count">0</div>
+                    <div class="label">Total Records</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="serverroom-latest">-</div>
+                    <div class="label">Latest Record</div>
+                </div>
+            </div>
+            <div id="serverroom-records" class="records-grid">
+                <div class="loading">Loading Server Room records...</div>
+            </div>
+        </div>
+
+        <!-- UPS TAB -->
+        <div id="ups" class="tab-content">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number" id="ups-count">0</div>
+                    <div class="label">Total Records</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="ups-latest">-</div>
+                    <div class="label">Latest Record</div>
+                </div>
+            </div>
+            <div id="ups-records" class="records-grid">
+                <div class="loading">Loading UPS records...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <h2>Record Details</h2>
+            <div id="modalBody"></div>
+            <div class="modal-actions">
+                <button class="btn btn-close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api-client.js"></script>
+    <script>
+        let currentTab = 'hubroom';
+
+        // Switch tabs
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            currentTab = tab;
+
+            // Load data
+            loadRecords(tab);
+        }
+
+        // Load records for a type
+        async function loadRecords(type) {
+            const container = document.getElementById(`${type}-records`);
+            container.innerHTML = '<div class="loading">Loading records...</div>';
+
+            let api;
+            switch(type) {
+                case 'hubroom': api = HubRoomAPI; break;
+                case 'serverroom': api = ServerRoomAPI; break;
+                case 'ups': api = UPSAPI; break;
+            }
+
+            const response = await api.getAll();
+
+            if (response.success && response.data.length > 0) {
+                const html = response.data.map(record => `
+                    <div class="record-card">
+                        <h3>${new Date(record.date).toLocaleDateString()}</h3>
+                        <div class="record-info">
+                            <p><strong>Records:</strong> ${record.readings?.length || 0} readings</p>
+                            <p><strong>Checked By:</strong> ${record.checkedBy || '-'}</p>
+                            <p><strong>Supervisor:</strong> ${record.supervisorName || '-'}</p>
+                            <p><strong>Saved:</strong> ${new Date(record.createdAt).toLocaleString()}</p>
+                        </div>
+                        <div class="record-actions">
+                            <button class="btn btn-view" onclick="viewDetails('${type}', '${record._id}')">View</button>
+                            <button class="btn btn-delete" onclick="deleteRecord('${type}', '${record._id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = html;
+
+                // Update stats
+                document.getElementById(`${type}-count`).textContent = response.data.length;
+                const latestDate = new Date(response.data[0].date).toLocaleDateString();
+                document.getElementById(`${type}-latest`).textContent = latestDate;
+            } else {
+                container.innerHTML = '<div class="empty-state"><p>No records found</p></div>';
+            }
+        }
+
+        // View details
+        async function viewDetails(type, id) {
+            let api;
+            switch(type) {
+                case 'hubroom': api = HubRoomAPI; break;
+                case 'serverroom': api = ServerRoomAPI; break;
+                case 'ups': api = UPSAPI; break;
+            }
+
+            const response = await api.getById(id);
+            
+            if (response.success) {
+                const record = response.data;
+                const html = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+                        <h4>Basic Information</h4>
+                        <p><strong>Date:</strong> ${new Date(record.date).toLocaleDateString()}</p>
+                        <p><strong>Checked By:</strong> ${record.checkedBy}</p>
+                        <p><strong>Supervisor Name:</strong> ${record.supervisorName}</p>
+                        <p><strong>Supervisor Signature:</strong> ${record.supervisorSignature}</p>
+                        <p><strong>Created At:</strong> ${new Date(record.createdAt).toLocaleString()}</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px;">
+                        <h4>Readings (${record.readings?.length || 0} total)</h4>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                <thead>
+                                    <tr style="background: #e9ecef;">
+                                        ${Object.keys(record.readings[0] || {}).map(key => 
+                                            `<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">${key}</th>`
+                                        ).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${(record.readings || []).map(reading => `
+                                        <tr style="border-bottom: 1px solid #ddd;">
+                                            ${Object.values(reading).map(val => 
+                                                `<td style="padding: 8px; border: 1px solid #ddd;">${val}</td>`
+                                            ).join('')}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('detailModal').classList.add('show');
+            }
+        }
+
+        // Delete record
+        async function deleteRecord(type, id) {
+            if (!confirm('Are you sure you want to delete this record?')) {
+                return;
+            }
+
+            let api;
+            switch(type) {
+                case 'hubroom': api = HubRoomAPI; break;
+                case 'serverroom': api = ServerRoomAPI; break;
+                case 'ups': api = UPSAPI; break;
+            }
+
+            const response = await api.delete(id);
+            
+            if (response.success) {
+                showNotification('Record deleted successfully', 'success');
+                loadRecords(type);
+            } else {
+                showNotification('Error deleting record', 'error');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        // Load initial data
+        window.addEventListener('load', () => {
+            loadRecords('hubroom');
+            loadRecords('serverroom');
+            loadRecords('ups');
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadRecords(currentTab);
+        }, 30000);
+    </script>
+</body>
+</html>
