@@ -791,7 +791,17 @@
           document.querySelectorAll("#data-body tr").forEach((row, index) => {
             const inputs = row.querySelectorAll("input");
             const timeLabel = timeLabels[index]?.textContent || "";
-            if (inputs.length > 0 && (inputs[0].value || inputs[1]?.value || inputs[2]?.value)) {
+            
+            // Check if ANY input in this row has data
+            let hasData = false;
+            for (let i = 0; i < inputs.length; i++) {
+              if (inputs[i].value) {
+                hasData = true;
+                break;
+              }
+            }
+            
+            if (hasData) {
               // Create reading object with all 19 fields
               const reading = { time: timeLabel };
               for (let i = 0; i < inputs.length; i++) {
@@ -839,6 +849,8 @@
           
           if (response.success && response.data.length > 0) {
             const filtered = response.data.filter(r => r.upsUnit === upsNum);
+            console.log('Filtered records for UPS', upsNum, ':', filtered); // DEBUG
+            
             if (filtered.length === 0) {
               showNotification(`No records found for UPS ${upsNum}`, 'info');
               return;
@@ -846,6 +858,8 @@
             
             const latestRecord = filtered[0];
             console.log('Latest record:', latestRecord); // DEBUG
+            console.log('Readings array:', latestRecord.readings); // DEBUG
+            console.log('Readings length:', latestRecord.readings?.length); // DEBUG
             
             const dateStr = latestRecord.date.split('T')[0];
             document.getElementById("check-date").value = dateStr;
@@ -862,15 +876,25 @@
             
             if (latestRecord.readings && latestRecord.readings.length > 0) {
               const tableRows = document.querySelectorAll("#data-body tr");
+              console.log('Table rows found:', tableRows.length); // DEBUG
+              
               latestRecord.readings.forEach((reading, index) => {
+                console.log(`Loading row ${index}:`, reading); // DEBUG
                 if (tableRows[index]) {
                   const inputs = tableRows[index].querySelectorAll("input");
+                  console.log(`Row ${index} has ${inputs.length} inputs`); // DEBUG
+                  
                   inputs.forEach((inp, colIndex) => {
-                    inp.value = (reading[`col${colIndex}`] !== undefined ? reading[`col${colIndex}`] : "") || "";
+                    const value = reading[`col${colIndex}`];
+                    inp.value = (value !== undefined && value !== null) ? value : "";
+                    console.log(`Row ${index}, Col ${colIndex}: set to`, inp.value); // DEBUG
                   });
                 }
               });
               showNotification(`✓ Loaded UPS ${upsNum} data from ${dateStr}`, 'success');
+            } else {
+              console.log('No readings found in latest record'); // DEBUG
+              showNotification('No readings found in latest record', 'info');
             }
           } else {
             showNotification('No saved records found', 'info');
