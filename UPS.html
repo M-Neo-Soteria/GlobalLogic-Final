@@ -793,11 +793,19 @@
               latestRecord.readings.forEach((reading, index) => {
                 if (tableRows[index]) {
                   const inputs = tableRows[index].querySelectorAll("input");
-                  if (inputs[0]) inputs[0].value = reading.time || "";
-                  // Load all 19 columns
-                  for (let i = 1; i < Math.min(19, inputs.length); i++) {
-                    if (inputs[i]) inputs[i].value = reading[`col${i}`] || "";
-                  }
+                  // Load all 19 input fields (col1-col18, plus time at col0)
+                  inputs.forEach((inp, colIndex) => {
+                    if (colIndex === 0) {
+                      // Time field
+                      inp.value = reading.time || "";
+                    } else if (colIndex === 18) {
+                      // Signature column - NO threshold checking
+                      inp.value = reading[`col${colIndex}`] || "";
+                    } else {
+                      // All other numeric fields
+                      inp.value = reading[`col${colIndex}`] || "";
+                    }
+                  });
                 }
               });
               showNotification(`✓ Loaded UPS ${upsNum} data from ${dateStr}`, 'success');
