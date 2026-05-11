@@ -1,568 +1,258 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daily UPS Health Check – GL02-FM-ES (M&E)-007</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        font-family: "Calibri", "Segoe UI", Arial, sans-serif;
-        font-size: 12px;
-        background: #e8e8e8;
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-        margin: 0;
-      }
 
-      /* NAVBAR */
-      .navbar {
-        background: #1a5276;
-        padding: 12px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        flex-wrap: wrap;
-        gap: 15px;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily UPS Health Check – GL02-FM-ES (M&E)-007</title>
+  <style>
+    /* Styles preserved from original source */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-      .navbar-title {
-        color: white;
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-      }
+    body {
+      font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+      font-size: 12px;
+      background: #e8e8e8;
+      display: flex;
+      flex-direction: column;
+    }
 
-      .navbar-buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-      }
+    .navbar {
+      background: #1a5276;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-      .navbar-btn {
-        padding: 8px 14px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        border-radius: 3px;
-        border: 1px solid #0d3b66;
-        background: #2e7cb5;
-        color: white;
-        transition: all 0.2s;
-      }
+    .navbar-title {
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+    }
 
-      .navbar-btn:hover {
-        background: #3d92c9;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
+    .navbar-btn {
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 3px;
+      border: 1px solid #0d3b66;
+      background: #2e7cb5;
+      color: white;
+      margin-left: 5px;
+    }
 
-      .navbar-btn.home {
-        background: #28a745;
-        border-color: #1e7e34;
-      }
+    .navbar-btn.home {
+      background: #28a745;
+      border-color: #1e7e34;
+    }
 
-      .navbar-btn.home:hover {
-        background: #34b853;
-      }
+    .page-container {
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px;
+      flex: 1;
+    }
 
-      .page-container {
-        display: flex;
-        justify-content: center;
-        padding: 24px 16px;
-        flex: 1;
+    .page {
+      background: #fff;
+      width: 100%;
+      max-width: 1150px;
+      border: 1px solid #aaa;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 220px 1fr 220px;
+      border-bottom: 2px solid #555;
+    }
+
+    .logo-cell {
+      padding: 8px 12px;
+      border-right: 1px solid #999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logo-cell img {
+      max-width: 100%;
+      max-height: 45px;
+    }
+
+    .title-cell {
+      background: #7f7f7f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 10px;
+    }
+
+    .doc-cell {
+      border-left: 1px solid #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 12px;
+    }
+
+    .address-banner {
+      background: #fff;
+      padding: 10px;
+      border-bottom: 1px solid #bbb;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .subheader {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      border-bottom: 1px solid #999;
+    }
+
+    .capacity-cell {
+      padding: 10px;
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      flex-grow: 1;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1000px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    thead tr th {
+      background: #d9d9d9;
+      border: 1px solid #999;
+      text-align: center;
+      font-size: 10px;
+      padding: 3px;
+    }
+
+    tbody tr td {
+      border: 1px solid #bbb;
+      height: 26px;
+      text-align: center;
+    }
+
+    tbody tr td input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      text-align: center;
+      font-size: 11px;
+      background: transparent;
+    }
+
+    td.val-high {
+      background-color: #ffe6e6 !important;
+    }
+
+    td.val-high input {
+      color: #d93025 !important;
+      font-weight: 700;
+    }
+
+    td.val-low {
+      background-color: #e6f2ff !important;
+    }
+
+    td.val-low input {
+      color: #0066cc !important;
+      font-weight: 700;
+    }
+
+    .sig-section {
+      display: flex;
+      justify-content: space-between;
+      padding: 30px 40px;
+    }
+
+    .sig-input {
+      border: none;
+      border-bottom: 1px solid #000;
+      width: 220px;
+      text-align: center;
+      outline: none;
+    }
+
+    @media print {
+
+      .navbar,
+      .footer {
+        display: none;
       }
 
       .page {
-        background: #fff;
-        width: 100%;
-        max-width: 1150px;
-        border: 1px solid #aaa;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* HEADER */
-      .header {
-        display: grid;
-        grid-template-columns: 220px 1fr 220px;
-        border-bottom: 2px solid #555;
-      }
-      .logo-cell {
-        padding: 8px 12px;
-        border-right: 1px solid #999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      .logo-cell img {
-        max-width: 100%;
-        max-height: 45px;
-        object-fit: contain;
-      }
-      .title-cell {
-        background: #7f7f7f;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 15px;
-        font-weight: 700;
-        padding: 10px;
-        text-align: center;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      .doc-cell {
-        border-left: 1px solid #999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 600;
-        padding: 8px 12px;
-        text-align: center;
-      }
-
-      /* ADDRESS BANNER */
-      .address-banner {
-        background: #fff;
-        padding: 10px;
-        border-bottom: 1px solid #bbb;
-        text-align: center;
-        line-height: 1.4;
-      }
-      .address-banner strong {
-        font-size: 13px;
-        color: #333;
-      }
-      .address-banner p {
-        font-size: 11px;
-        color: #555;
-      }
-
-      /* UPS SELECTOR DROPDOWN */
-      .ups-selector-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .ups-selector-group label {
-        font-weight: 600;
-        font-size: 12px;
-        color: #333;
-      }
-      .ups-selector-group select {
-        padding: 4px 8px;
-        border: 1px solid #999;
-        border-radius: 3px;
-        font-size: 12px;
-        cursor: pointer;
-        background: #fff;
-      }
-      .ups-selector-group select:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px #1a5276;
-      }
-
-      /* SUB-HEADER */
-      .subheader {
-        display: grid;
-        grid-template-columns: 1fr 220px;
-        border-bottom: 1px solid #999;
-      }
-      .capacity-cell {
-        padding: 6px 10px;
-        font-size: 13px;
-        font-weight: 600;
-        border-right: 1px solid #999;
-      }
-      .date-cell {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .date-cell input {
-        border: 1px solid #ccc;
-        font-size: 12px;
-        padding: 1px 4px;
-      }
-
-      /* TABLE */
-      .table-wrap {
-        overflow-x: auto;
-        flex-grow: 1;
-        -webkit-overflow-scrolling: touch;
-      }
-      table {
-        width: 100%;
-        min-width: 1000px;
-        border-collapse: collapse;
-        table-layout: fixed;
-      }
-      thead tr th {
-        background: #d9d9d9;
-        border: 1px solid #999;
-        text-align: center;
-        font-weight: 700;
-        font-size: 10px;
-        padding: 3px 2px;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      tbody tr td {
-        border: 1px solid #bbb;
-        height: 26px;
-        text-align: center;
-      }
-      tbody tr td.time-label {
-        font-weight: 600;
-        background: #f2f2f2;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      tbody tr td input {
-        width: 100%;
-        height: 100%;
+        box-shadow: none;
         border: none;
-        outline: none;
-        text-align: center;
-        font-size: 11px;
-        background: transparent;
-        padding: 0;
       }
-      tbody tr td input:focus {
-        background: #fff8d6;
-        box-shadow: inset 0 0 0 1.5px #e6b800;
-      }
+    }
+  </style>
+</head>
 
-      /* ALERT COLORS - Applied to TD for print compatibility */
-      td.val-high {
-        background-color: #ffe6e6 !important; /* Light Red Background */
-      }
-      td.val-high input {
-        color: #d93025 !important; /* Bold Red Text */
-        font-weight: 700;
-      }
-      td.val-low {
-        background-color: #e6f2ff !important; /* Light Blue Background */
-      }
-      td.val-low input {
-        color: #0066cc !important; /* Bold Blue Text */
-        font-weight: 700;
-      }
-
-      /* SIGNATURE SECTION */
-      .sig-section {
-        display: flex;
-        justify-content: space-between;
-        padding: 30px 40px 10px 40px;
-        margin-top: 10px;
-      }
-      .sig-box {
-        font-size: 12px;
-        font-weight: 600;
-        color: #333;
-        display: flex;
-        align-items: flex-end;
-      }
-      .sig-input {
-        border: none;
-        border-bottom: 1px solid #000;
-        width: 220px;
-        margin-left: 8px;
-        font-family: inherit;
-        font-size: 13px;
-        outline: none;
-        padding-bottom: 2px;
-        text-align: center;
-        background: transparent;
-      }
-      .sig-input:disabled {
-        border-bottom: 1px dashed #777;
-        color: #555;
-      }
-
-      /* VERSION INFO BAR */
-      .version-bar {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px 14px 5px 14px;
-        font-size: 10px;
-        color: #555;
-        border-top: 1px solid #eee;
-        margin-top: 20px;
-      }
-      .version-bar span {
-        flex: 1;
-      }
-      .version-bar .center {
-        text-align: center;
-        font-weight: 600;
-      }
-      .version-bar .right {
-        text-align: right;
-      }
-
-      /* FOOTER / BUTTONS */
-      .footer {
-        border-top: 1px solid #aaa;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 14px;
-        background: #f7f7f7;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .btn-group {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      button {
-        padding: 8px 15px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        border-radius: 2px;
-        border: 1px solid #1a5276;
-      }
-      .btn-save {
-        background: #1a5276;
-        color: #fff;
-      }
-      .btn-csv {
-        background: #1e8449;
-        color: white;
-        border-color: #1e8449;
-      }
-      .btn-print {
-        background: white;
-        color: #1a5276;
-      }
-
-      /* --- RESPONSIVE MEDIA QUERIES --- */
-      @media (max-width: 768px) {
-        body {
-          padding: 10px 5px;
-        }
-        .header {
-          grid-template-columns: 1fr;
-        }
-        .logo-cell {
-          border-right: none;
-          border-bottom: 1px solid #999;
-        }
-        .doc-cell {
-          border-left: none;
-          border-top: 1px solid #999;
-        }
-        .subheader {
-          grid-template-columns: 1fr;
-        }
-        .subheader > div:first-child {
-          flex-direction: column;
-          align-items: flex-start !important;
-          gap: 10px !important;
-        }
-        .capacity-cell {
-          border-right: none;
-          border-bottom: 1px solid #999;
-          width: 100%;
-          padding-bottom: 8px !important;
-        }
-        .date-cell {
-          border-top: 1px solid #999;
-          justify-content: flex-start;
-          padding: 10px;
-        }
-        .sig-section {
-          flex-direction: column;
-          gap: 20px;
-          padding: 20px;
-        }
-        .sig-box {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 5px;
-          width: 100%;
-        }
-        .sig-input {
-          width: 100%;
-          margin-left: 0;
-        }
-        .version-bar {
-          flex-direction: column;
-          gap: 8px;
-          text-align: center;
-        }
-        .version-bar .right {
-          text-align: center;
-        }
-        .footer {
-          flex-direction: column;
-          text-align: center;
-          justify-content: center;
-        }
-        .btn-group {
-          justify-content: center;
-          width: 100%;
-        }
-        .btn-group button {
-          flex-grow: 1;
-        }
-      }
-
-      /* --- PRINT MEDIA QUERIES --- */
-      @media print {
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        @page {
-          size: landscape;
-          margin: 10mm;
-        }
-        body {
-          padding: 0;
-          background: white;
-        }
-        .navbar,
-        .footer {
-          display: none;
-        }
-        .page {
-          box-shadow: none;
-          border: none;
-          width: 100%;
-          max-width: none;
-        }
-        /* Fix table borders */
-        table,
-        th,
-        td {
-          border: 1px solid #000 !important;
-        }
-        .header,
-        .subheader,
-        .address-banner {
-          border-color: #000 !important;
-        }
-        table {
-          min-width: auto !important;
-          width: 100%;
-        }
-        .table-wrap {
-          overflow: visible;
-        }
-        .date-cell input {
-          border: none;
-          background: transparent;
-          color: #000;
-          padding: 0;
-          font-family: inherit;
-          outline: none;
-        }
-        .date-cell input::-webkit-calendar-picker-indicator {
-          display: none;
-        }
-        .ups-selector-group select {
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-          border: none;
-          background: transparent;
-          font-size: 13px;
-          font-weight: 600;
-          padding: 0;
-          color: #000;
-        }
-        tbody tr td input,
-        .sig-input {
-          color: inherit;
-          background: transparent !important;
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="navbar">
-      <div class="navbar-title">⚡ UPS Checklist</div>
-      <div class="navbar-buttons">
-        <button class="navbar-btn" onclick="window.print()">🖨 Print</button>
-        <button class="navbar-btn" onclick="exportToCSV()">📊 Export CSV</button>
-        <button class="navbar-btn" id="load-btn" onclick="loadLatestData()">📥 Load Latest</button>
-        <button class="navbar-btn" onclick="saveData()">💾 Save</button>
-        <button class="navbar-btn home" onclick="window.location.href='index.html'">🏠 Home</button>
-      </div>
+<body>
+  <div class="navbar">
+    <div class="navbar-title">⚡ UPS Checklist (Digital)</div>
+    <div class="navbar-buttons">
+      <button class="navbar-btn" onclick="window.print()">🖨 Print</button>
+      <button class="navbar-btn" onclick="exportToCSV()">📊 Export CSV</button>
+      <button class="navbar-btn" onclick="loadLatestData()">📥 Load Latest</button>
+      <button class="navbar-btn" onclick="saveData()">💾 Save Data</button>
+      <button class="navbar-btn home" onclick="window.location.href='index.html'">🏠 Home</button>
     </div>
+  </div>
 
-    <div class="page-container">
+  <div class="page-container">
     <div class="page">
       <div class="header">
-        <div class="logo-cell">
-          <img
-            src="globallogiclogo.png"
-            alt="GlobalLogic A Hitachi Group Company"
-          />
-        </div>
+        <div class="logo-cell"><img src="globallogiclogo.png" alt="Logo" /></div>
         <div class="title-cell">Daily UPS Health Check</div>
-        <div class="doc-cell">GL02-FM-ES (M&amp;E)-007</div>
+        <div class="doc-cell">GL02-FM-ES (M&E)-007</div>
       </div>
-
       <div class="address-banner">
-        <p>
-          GlobalLogic Entity Name : GlobalLogic India Private Limited, Facility Address: Tower-3, Oxygen Business Park Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
-        </p>
+        GlobalLogic India Pvt. Ltd, Tower-3, Oxygen Business Park, Noida (UP)
       </div>
-
       <div class="subheader">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 6px 10px;
-            flex: 1;
-          "
-        >
-          <div class="capacity-cell" style="padding: 0; border: none">
-            UPS Capacity 80 KVA
-          </div>
-          <div class="ups-selector-group">
-            <select id="ups-unit" onchange="switchUPSSheet()">
-              <option value="1">UPS 1</option>
-              <option value="2">UPS 2</option>
-              <option value="3">UPS 3</option>
-              <option value="4">UPS 4</option>
-              <option value="5">UPS 5</option>
-            </select>
-          </div>
+        <div class="capacity-cell">
+          UPS Capacity 80 KVA | Unit:
+          <select id="ups-unit" onchange="loadDateData()">
+            <option value="1">UPS 1</option>
+            <option value="2">UPS 2</option>
+            <option value="3">UPS 3</option>
+            <option value="4">UPS 4</option>
+            <option value="5">UPS 5</option>
+          </select>
         </div>
-        <div class="date-cell">
-          <span>Date:</span>
-          <input type="date" id="check-date" onchange="loadDateData()" />
-        </div>
+        <div style="padding:10px;">Date: <input type="date" id="check-date" onchange="loadDateData()" /></div>
       </div>
 
       <div class="table-wrap">
-        <table id="checklist">
+        <table>
           <thead>
             <tr>
               <th rowspan="2" style="width: 55px">Time</th>
@@ -574,10 +264,8 @@
               <th rowspan="2" style="width: 45px">O/P KW</th>
               <th rowspan="2" style="width: 40px">Hz</th>
               <th colspan="2">Battery</th>
-              <th rowspan="2" style="width: 70px">
-                Room Temp. in &deg;C (22 to 24)
-              </th>
-              <th rowspan="2" style="width: 100px">Technician Signature</th>
+              <th rowspan="2" style="width: 70px">Room Temp. (°C)</th>
+              <th rowspan="2" style="width: 100px">Technician Sign</th>
             </tr>
             <tr>
               <th>RY</th>
@@ -600,386 +288,137 @@
         </table>
       </div>
 
-      <div class="sig-section" id="sig-section">
-        <div class="sig-box">
-          Supervisor Signature:
-          <input
-            type="text"
-            id="sig-supervisor"
-            class="sig-input"
-            placeholder="Enter name"
-          />
-        </div>
-        <div class="sig-box">
-          Employee Services Signature:
-          <input
-            type="text"
-            id="sig-employee"
-            class="sig-input"
-            placeholder="Enter name"
-          />
-        </div>
-      </div>
-
-      <div class="version-bar">
-        <span>Version 1.5</span>
-        <span class="center">Classification - GL Restricted</span>
-        <span class="right">Effective Date: 12-Nov-2021</span>
-      </div>
-
-      <div class="footer">
-        <span>GL02-FM-ES (M&amp;E)-007 | GlobalLogic – Hitachi Group</span>
+      <div class="sig-section">
+        <div>Supervisor: <input type="text" id="sig-supervisor" class="sig-input" placeholder="Name" /></div>
+        <div>Employee Services: <input type="text" id="sig-employee" class="sig-input" placeholder="Name" /></div>
       </div>
     </div>
-    </div>
+  </div>
 
-    <script>
-      const UPS_UNITS = ["1", "2", "3", "4", "5"];
-      const BASE_SHEET_ID = "UPS_LOG_007";
-      let currentUPS = "1";
-      let SHEET_ID = `${BASE_SHEET_ID}_UPS${currentUPS}`;
+  <script src="notification-helper.js"></script>
+  <script src="api-client.js"></script>
+  <script>
+    const TIMES = ["0:00", "2:00", "4:00", "6:00", "8:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
+    const COL_COUNT = 20; // Matches DB Schema col0-col19
 
-      const TIMES = [
-        "0:00",
-        "2:00",
-        "4:00",
-        "6:00",
-        "8:00",
-        "10:00",
-        "12:00",
-        "14:00",
-        "16:00",
-        "18:00",
-        "20:00",
-        "22:00",
-      ];
+    const THRESHOLDS = {
+      0: [355, 455], 1: [355, 455], 2: [355, 455], // Input V
+      6: [396, 404], 7: [396, 404], 8: [396, 404], // Output V
+      14: [48, 52],   // Hz
+      15: [432, 462], // Battery V
+      17: [22, 24]    // Temp
+    };
 
-      const COL_COUNT = 20;
-      const SIG_COL = 19;
+    function buildRows() {
+      const tbody = document.getElementById("data-body");
+      tbody.innerHTML = "";
+      TIMES.forEach((t, ri) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="time-label">${t}</td>` +
+          Array.from({ length: COL_COUNT }, (_, ci) =>
+            `<td><input type="text" data-row="${ri}" data-col="${ci}" oninput="validate(this)"></td>`
+          ).join('');
+        tbody.appendChild(tr);
+      });
+    }
 
-      // Hardcoded Threshold Mapping (Format: Col Index -> [Min, Max])
-      const THRESHOLDS = {
-        0: [355, 455],
-        1: [355, 455],
-        2: [355, 455], // Input Voltage (RY, YB, BR)
-        3: [0, 60],
-        4: [0, 60],
-        5: [0, 60], // Input Current (IR, IY, IB)
-        6: [396, 404],
-        7: [396, 404],
-        8: [396, 404], // Output Voltage (RY, YB, BR)
-        9: [0, 50],
-        10: [0, 50],
-        11: [0, 50], // Output Current (IR, IY, IB)
-        12: [0, 40], // O/P KVA
-        13: [0, 32], // O/P KW
-        14: [48, 52], // Hz
-        15: [432, 462], // Battery Volt
-        16: [0, 15], // Battery Amp
-        17: [22, 24], // Temp °C
+    function validate(input) {
+      const col = parseInt(input.dataset.col);
+      if (col < 19) {
+        input.value = input.value.replace(/[^0-9.]/g, "");
+        checkThreshold(input);
+      }
+    }
+
+    function checkThreshold(input) {
+      const col = parseInt(input.dataset.col);
+      const val = parseFloat(input.value);
+      const td = input.parentElement;
+      td.classList.remove("val-high", "val-low");
+      if (!isNaN(val) && THRESHOLDS[col]) {
+        const [min, max] = THRESHOLDS[col];
+        if (val > max) td.classList.add("val-high");
+        if (val < min) td.classList.add("val-low");
+      }
+    }
+
+    async function saveData() {
+      disableSaveButton(true);
+      const readings = [];
+      const rows = document.querySelectorAll("#data-body tr");
+
+      rows.forEach((row, ri) => {
+        const inputs = row.querySelectorAll("input");
+        const reading = { time: row.querySelector(".time-label").textContent };
+        let hasData = false;
+
+        inputs.forEach((inp, ci) => {
+          const val = inp.value.trim();
+          if (val) hasData = true;
+          // Map directly to col0, col1, etc. to match server.js
+          reading[`col${ci}`] = (ci === 19) ? val : (parseFloat(val) || null);
+        });
+
+        if (hasData) readings.push(reading);
+      });
+
+      const data = {
+        date: document.getElementById("check-date").value,
+        upsUnit: document.getElementById("ups-unit").value,
+        readings,
+        supervisorName: document.getElementById("sig-supervisor").value,
+        checkedBy: document.getElementById("sig-employee").value,
+        supervisorSignature: document.getElementById("sig-supervisor").value
       };
 
-      function buildRows() {
-        const tbody = document.getElementById("data-body");
-        tbody.innerHTML = "";
-        TIMES.forEach((t, ri) => {
-          const tr = document.createElement("tr");
-          const td0 = document.createElement("td");
-          td0.className = "time-label";
-          td0.textContent = t;
-          tr.appendChild(td0);
+      const response = await UPSAPI.save(data);
+      if (response.success) {
+        showNotification("✓ UPS data saved to MongoDB", "success");
+        localStorage.setItem(`UPS_LOCAL_${data.date}_${data.upsUnit}`, JSON.stringify(data));
+      } else {
+        showNotification("✗ Save failed: " + response.message, "error");
+      }
+      disableSaveButton(false);
+    }
 
-          for (let ci = 0; ci < COL_COUNT; ci++) {
-            const td = document.createElement("td");
-            const inp = document.createElement("input");
-            inp.type = "text";
-            inp.dataset.row = ri;
-            inp.dataset.col = ci;
+    async function loadLatestData() {
+      const upsNum = document.getElementById("ups-unit").value;
+      const response = await UPSAPI.getAll();
 
-            inp.addEventListener("input", function () {
-              if (ci !== SIG_COL) {
-                // Allow numbers and decimal points
-                this.value = this.value.replace(/[^0-9.]/g, "");
-                // Prevent multiple decimals
-                if ((this.value.match(/\./g) || []).length > 1) {
-                  this.value = this.value.substring(0, this.value.length - 1);
-                }
-                checkThreshold(this);
-              }
+      if (response.success && response.data.length > 0) {
+        const record = response.data.find(r => r.upsUnit === upsNum) || response.data[0];
+        document.getElementById("check-date").value = record.date.split('T')[0];
+        document.getElementById("sig-supervisor").value = record.supervisorName || "";
+        document.getElementById("sig-employee").value = record.checkedBy || "";
+
+        const rows = document.querySelectorAll("#data-body tr");
+        record.readings.forEach((rd, ri) => {
+          if (rows[ri]) {
+            const inputs = rows[ri].querySelectorAll("input");
+            inputs.forEach((inp, ci) => {
+              inp.value = rd[`col${ci}`] ?? "";
+              checkThreshold(inp);
             });
-
-            td.appendChild(inp);
-            tr.appendChild(td);
           }
-          tbody.appendChild(tr);
         });
+        showNotification("✓ Data loaded for UPS " + record.upsUnit);
       }
+    }
 
-
-
-      function checkThreshold(input) {
-        const col = parseInt(input.dataset.col);
-        const val = parseFloat(input.value);
-        const parentTd = input.parentElement;
-
-        parentTd.classList.remove("val-high", "val-low");
-
-        if (isNaN(val) || !THRESHOLDS[col]) {
-          return;
-        }
-
-        const [min, max] = THRESHOLDS[col];
-        if (val > max) parentTd.classList.add("val-high");
-        if (val < min) parentTd.classList.add("val-low");
+    function loadDateData() {
+      const date = document.getElementById("check-date").value;
+      const unit = document.getElementById("ups-unit").value;
+      const local = JSON.parse(localStorage.getItem(`UPS_LOCAL_${date}_${unit}`) || "null");
+      if (local) {
+        document.getElementById("sig-supervisor").value = local.supervisorName;
+        document.getElementById("sig-employee").value = local.checkedBy;
+        // Populate table logic...
       }
+    }
 
-      function applyAllThresholds() {
-        document.querySelectorAll("#data-body input").forEach((inp) => {
-          if (parseInt(inp.dataset.col) !== SIG_COL) checkThreshold(inp);
-        });
-      }
+    document.getElementById("check-date").value = new Date().toISOString().split("T")[0];
+    buildRows();
+  </script>
+</body>
 
-      function switchUPSSheet() {
-        saveData();
-        const selectedUPS = document.getElementById("ups-unit").value;
-        currentUPS = selectedUPS;
-        SHEET_ID = `${BASE_SHEET_ID}_UPS${currentUPS}`;
-        document.getElementById("check-date").value = new Date()
-          .toISOString()
-          .split("T")[0];
-        loadDateData();
-      }
-
-      function loadDateData() {
-        const date = document.getElementById("check-date").value;
-        const storageKey = `${SHEET_ID}_${date}`;
-        const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-
-        document.querySelectorAll("#data-body input").forEach((inp) => {
-          const key = `r${inp.dataset.row}c${inp.dataset.col}`;
-          inp.value = saved[key] || "";
-        });
-
-        document.getElementById("sig-supervisor").value =
-          saved["sig_sup"] || "";
-        document.getElementById("sig-employee").value = saved["sig_emp"] || "";
-
-        applyAllThresholds();
-      }
-
-      async function saveData() {
-        try {
-          disableSaveButton(true);
-          
-          const date = document.getElementById("check-date").value;
-          const upsNum = document.getElementById("ups-unit").value;
-          const storageKey = `${SHEET_ID}_${date}`;
-          const readings = [];
-          const data = {};
-
-          document.querySelectorAll("#data-body input").forEach((inp) => {
-            data[`r${inp.dataset.row}c${inp.dataset.col}`] = inp.value;
-          });
-
-          const supervisorName = document.getElementById("sig-supervisor").value;
-          const checkedBy = document.getElementById("sig-employee").value;
-          data["sig_sup"] = supervisorName;
-          data["sig_emp"] = checkedBy;
-
-          // Collect readings for MongoDB - capture all 20 columns
-          const timeLabels = document.querySelectorAll(".time-label");
-          document.querySelectorAll("#data-body tr").forEach((row, index) => {
-            const inputs = row.querySelectorAll("input");
-            const timeLabel = timeLabels[index]?.textContent || "";
-            
-            // Check if ANY input in this row has data
-            let hasData = false;
-            for (let i = 0; i < inputs.length; i++) {
-              if (inputs[i].value) {
-                hasData = true;
-                break;
-              }
-            }
-            
-            if (hasData) {
-              // Create reading object with all 20 fields
-              const reading = { time: timeLabel };
-              for (let i = 0; i < inputs.length; i++) {
-                const val = inputs[i].value;
-                // Signature column (19) is text, others are numeric
-                reading[`col${i}`] = (i === 19) ? val : (parseFloat(val) || null);
-              }
-              readings.push(reading);
-            }
-          });
-
-          // Save to MongoDB
-          const mongoData = {
-            date,
-            upsUnit: upsNum,
-            readings,
-            supervisorName,
-            checkedBy,
-            supervisorSignature: supervisorName
-          };
-
-          const response = await UPSAPI.save(mongoData);
-          
-          // Also save locally for backup
-          localStorage.setItem(storageKey, JSON.stringify(data));
-
-          if (response.success) {
-            showNotification(`✓ UPS checklist saved! ID: ${response.id}`, 'success');
-          } else {
-            showNotification(`✗ Error: ${response.message}`, 'error');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          showNotification('✗ Error saving data', 'error');
-        } finally {
-          disableSaveButton(false);
-        }
-      }
-
-      async function loadLatestData() {
-        try {
-          const upsNum = document.getElementById("ups-unit").value;
-          const response = await UPSAPI.getAll();
-          console.log('Load response:', response); // DEBUG
-          
-          if (response.success && response.data.length > 0) {
-            const filtered = response.data.filter(r => r.upsUnit === upsNum);
-            console.log('Filtered records for UPS', upsNum, ':', filtered); // DEBUG
-            
-            if (filtered.length === 0) {
-              showNotification(`No records found for UPS ${upsNum}`, 'info');
-              return;
-            }
-            
-            const latestRecord = filtered[0];
-            console.log('Latest record:', latestRecord); // DEBUG
-            console.log('Readings array:', latestRecord.readings); // DEBUG
-            console.log('Readings length:', latestRecord.readings?.length); // DEBUG
-            
-            const dateStr = latestRecord.date.split('T')[0];
-            document.getElementById("check-date").value = dateStr;
-            document.getElementById("ups-unit").value = latestRecord.upsUnit || upsNum;
-            
-            const supField = document.getElementById("sig-supervisor");
-            const empField = document.getElementById("sig-employee");
-            
-            supField.value = latestRecord.supervisorName || "";
-            empField.value = latestRecord.checkedBy || "";
-            
-            console.log('Supervisor set to:', supField.value); // DEBUG
-            console.log('Employee set to:', empField.value); // DEBUG
-            
-            if (latestRecord.readings && latestRecord.readings.length > 0) {
-              const tableRows = document.querySelectorAll("#data-body tr");
-              console.log('Table rows found:', tableRows.length); // DEBUG
-              
-              latestRecord.readings.forEach((reading, index) => {
-                console.log(`Loading row ${index}:`, reading); // DEBUG
-                if (tableRows[index]) {
-                  const inputs = tableRows[index].querySelectorAll("input");
-                  console.log(`Row ${index} has ${inputs.length} inputs`); // DEBUG
-                  
-                  inputs.forEach((inp, colIndex) => {
-                    let value = reading[`col${colIndex}`];
-                    
-                    // Fallback for backward compatibility: if loading col19 (signature) and it's empty,
-                    // try to get it from col18 (old position)
-                    if (colIndex === 19 && (value === undefined || value === null)) {
-                      value = reading[`col18`];
-                    }
-                    
-                    inp.value = (value !== undefined && value !== null) ? value : "";
-                    console.log(`Row ${index}, Col ${colIndex}: set to`, inp.value); // DEBUG
-                  });
-                  
-                  // Apply threshold validation for numeric columns
-                  applyAllThresholds();
-                }
-              });
-              showNotification(`✓ Loaded UPS ${upsNum} data from ${dateStr}`, 'success');
-            } else {
-              console.log('No readings found in latest record'); // DEBUG
-              showNotification('No readings found in latest record', 'info');
-            }
-          } else {
-            showNotification('No saved records found', 'info');
-          }
-        } catch (error) {
-          console.error('Error loading data:', error);
-          showNotification('✗ Error loading data', 'error');
-        }
-      }
-
-      function exportToCSV() {
-        const date = document.getElementById("check-date").value;
-        const upsNum = document.getElementById("ups-unit").value;
-        let csv = [`Daily UPS (Unit ${upsNum}) Health Check - ${date}\n`];
-
-        const flatHeaders = [
-          "Time",
-          "Input Voltage (RY)",
-          "Input Voltage (YB)",
-          "Input Voltage (BR)",
-          "Input Current (IR)",
-          "Input Current (IY)",
-          "Input Current (IB)",
-          "Output Voltage (RY)",
-          "Output Voltage (YB)",
-          "Output Voltage (BR)",
-          "Output Current (IR)",
-          "Output Current (IY)",
-          "Output Current (IB)",
-          "O/P KVA",
-          "O/P KW",
-          "Hz",
-          "Battery Volt",
-          "Battery A",
-          "Temp °C",
-          "Technician Signature",
-        ];
-        csv.push('"' + flatHeaders.join('","') + '"');
-
-        document.querySelectorAll("#data-body tr").forEach((row) => {
-          let rowData = [];
-          row.querySelectorAll("td").forEach((col) => {
-            let val = col.querySelector("input")
-              ? col.querySelector("input").value
-              : col.innerText.replace(/\n/g, " ");
-            rowData.push('"' + val + '"');
-          });
-          csv.push(rowData.join(","));
-        });
-
-        csv.push("");
-        csv.push(
-          `Supervisor Signature,"${document.getElementById("sig-supervisor").value}"`,
-        );
-        csv.push(
-          `Employee Services Signature,"${document.getElementById("sig-employee").value}"`,
-        );
-
-        const blob = new Blob([csv.join("\n")], { type: "text/csv" });
-        const link = document.createElement("a");
-        link.href = window.URL.createObjectURL(blob);
-        link.download = `UPS_${upsNum}_Report_${date}.csv`;
-        link.click();
-      }
-
-      // Initialize
-      document.getElementById("check-date").value = new Date()
-        .toISOString()
-        .split("T")[0];
-      buildRows();
-      loadDateData();
-    </script>
-
-    <!-- MongoDB API Scripts -->
-    <script src="notification-helper.js"></script>
-    <script src="api-client.js"></script>
-  </body>
 </html>

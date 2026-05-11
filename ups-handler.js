@@ -1,159 +1,141 @@
 /**
  * UPS Checklist - Save Functionality
- * Add this script before closing </body> tag in UPS.html
+ * This version maps data to the 'colX' format expected by the backend schema.
  */
 
-<script src="api-client.js"></script>
-<script>
-  // UPS specific save handler
-  async function saveUPSChecklist() {
-    try {
-      disableSaveButton(true);
+// UPS specific save handler
+async function saveUPSChecklist() {
+  try {
+    disableSaveButton(true);
 
-      // Get date
-      const dateInput = document.querySelector('input[type="date"]');
-      const date = dateInput?.value || new Date().toISOString().split('T')[0];
-
-      // Get UPS unit
-      const upsUnitSelect = document.querySelector('select[name="upsUnit"]');
-      const upsUnit = upsUnitSelect?.value || 'UPS-1';
-
-      // Collect readings from table
-      const readings = [];
-      const tableRows = document.querySelectorAll('table tbody tr');
-
-      tableRows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length > 0) {
-          const timeInput = cells[0]?.querySelector('input');
-          
-          if (timeInput?.value) {
-            const reading = {
-              time: timeInput.value,
-              inputVoltage: parseFloat(cells[1]?.querySelector('input')?.value) || null,
-              inputFrequency: parseFloat(cells[2]?.querySelector('input')?.value) || null,
-              batteryVoltage: parseFloat(cells[3]?.querySelector('input')?.value) || null,
-              batteryCapacity: parseFloat(cells[4]?.querySelector('input')?.value) || null,
-              outputVoltage: parseFloat(cells[5]?.querySelector('input')?.value) || null,
-              outputFrequency: parseFloat(cells[6]?.querySelector('input')?.value) || null,
-              outputPower: parseFloat(cells[7]?.querySelector('input')?.value) || null,
-              temperature: parseFloat(cells[8]?.querySelector('input')?.value) || null,
-              alarmStatus: cells[9]?.querySelector('input')?.value || '',
-              notes: cells[10]?.querySelector('input')?.value || ''
-            };
-            readings.push(reading);
-          }
-        }
-      });
-
-      // Get signature fields
-      const checkedBy = document.querySelector('input[name="checkedBy"]')?.value || '';
-      const supervisorName = document.querySelector('input[name="supervisorName"]')?.value || '';
-      const supervisorSignature = document.querySelector('input[name="supervisorSignature"]')?.value || '';
-
-      // Prepare data
-      const data = {
-        date,
-        upsUnit,
-        readings,
-        checkedBy,
-        supervisorName,
-        supervisorSignature
-      };
-
-      console.log('Sending UPS data:', data);
-
-      // Save to backend
-      const response = await UPSAPI.save(data);
-
-      if (response.success) {
-        showNotification(`✓ UPS checklist saved successfully! ID: ${response.id}`, 'success');
-        console.log('Saved with ID:', response.id);
-        sessionStorage.setItem('ups_id', response.id);
-      } else {
-        showNotification(`✗ Error: ${response.message}`, 'error');
-        console.error('Save failed:', response.error);
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      showNotification('✗ Unexpected error occurred', 'error');
-    } finally {
-      disableSaveButton(false);
-    }
-  }
-
-  // Attach event listener when DOM is ready
-  document.addEventListener('DOMContentLoaded', function() {
-    const saveBtn = document.querySelector('.btn-save');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', saveUPSChecklist);
-      console.log('✓ UPS save button initialized');
-    }
-  });
-
-  // Optional: Auto-save every 5 minutes
-  let autoSaveInterval = null;
-
-  function enableAutoSave(intervalMinutes = 5) {
-    autoSaveInterval = setInterval(() => {
-      console.log('Auto-saving UPS checklist...');
-      saveUPSChecklist();
-    }, intervalMinutes * 60 * 1000);
-  }
-
-  function disableAutoSave() {
-    if (autoSaveInterval) {
-      clearInterval(autoSaveInterval);
-      autoSaveInterval = null;
-    }
-  }
-
-  // Load previously saved data
-  async function loadUPSData(id) {
-    const response = await UPSAPI.getById(id);
-    if (response.success) {
-      populateUPSForm(response.data);
-    }
-  }
-
-  function populateUPSForm(data) {
-    // Set date
+    // Get date
     const dateInput = document.querySelector('input[type="date"]');
-    if (dateInput && data.date) {
-      dateInput.value = data.date.split('T')[0];
-    }
+    const date = dateInput?.value || new Date().toISOString().split('T')[0];
 
-    // Set UPS unit
-    const upsUnitSelect = document.querySelector('select[name="upsUnit"]');
-    if (upsUnitSelect) upsUnitSelect.value = data.upsUnit || 'UPS-1';
+    // Get UPS unit
+    const upsUnitSelect = document.getElementById('ups-unit');
+    const upsUnit = upsUnitSelect?.value || '1';
 
-    // Set signature fields
-    const checkedByInput = document.querySelector('input[name="checkedBy"]');
-    if (checkedByInput) checkedByInput.value = data.checkedBy || '';
+    // Collect readings from table
+    const readings = [];
+    const tableRows = document.querySelectorAll('#data-body tr');
 
-    const supervisorNameInput = document.querySelector('input[name="supervisorName"]');
-    if (supervisorNameInput) supervisorNameInput.value = data.supervisorName || '';
+    tableRows.forEach((row, index) => {
+      const inputs = row.querySelectorAll('input');
+      const timeLabel = row.querySelector('.time-label')?.textContent || "";
 
-    const supervisorSignatureInput = document.querySelector('input[name="supervisorSignature"]');
-    if (supervisorSignatureInput) supervisorSignatureInput.value = data.supervisorSignature || '';
+      // Check if any input in this row has data
+      let hasData = false;
+      inputs.forEach(inp => { if (inp.value) hasData = true; });
 
-    // Populate readings
-    const tableRows = document.querySelectorAll('table tbody tr');
-    data.readings.forEach((reading, index) => {
-      if (tableRows[index]) {
-        const inputs = tableRows[index].querySelectorAll('input');
-        const fieldNames = ['time', 'inputVoltage', 'inputFrequency', 'batteryVoltage', 
-                           'batteryCapacity', 'outputVoltage', 'outputFrequency', 'outputPower',
-                           'temperature', 'alarmStatus', 'notes'];
-        
-        fieldNames.forEach((fieldName, i) => {
-          if (inputs[i]) {
-            inputs[i].value = reading[fieldName] || '';
-          }
+      if (hasData) {
+        // Create reading object matching the 'colX' schema in server.js
+        const reading = { time: timeLabel };
+
+        inputs.forEach((input, i) => {
+          const val = input.value;
+          // col19 is usually the signature (text), others are numeric
+          reading[`col${i}`] = (i === 19) ? val : (parseFloat(val) || null);
         });
+        readings.push(reading);
       }
     });
 
-    console.log('✓ Form data loaded');
+    // Get signature fields
+    const supervisorName = document.getElementById("sig-supervisor")?.value || '';
+    const checkedBy = document.getElementById("sig-employee")?.value || '';
+
+    // Prepare data matching UPS Schema in server.js
+    const data = {
+      date: date,
+      upsUnit: upsUnit,
+      readings: readings,
+      checkedBy: checkedBy,
+      supervisorName: supervisorName,
+      supervisorSignature: supervisorName // Mapping to schema field
+    };
+
+    console.log('Sending UPS data:', data);
+
+    // Save to backend using the API client
+    const response = await UPSAPI.save(data);
+
+    if (response.success) {
+      if (typeof showNotification === 'function') {
+        showNotification(`✓ UPS checklist saved successfully! ID: ${response.id}`, 'success');
+      }
+      console.log('Saved with ID:', response.id);
+    } else {
+      if (typeof showNotification === 'function') {
+        showNotification(`✗ Error: ${response.message}`, 'error');
+      }
+      console.error('Save failed:', response.message);
+    }
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    if (typeof showNotification === 'function') {
+      showNotification('✗ Unexpected error occurred', 'error');
+    }
+  } finally {
+    disableSaveButton(false);
   }
-</script>
+}
+
+// Attach event listener when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+  const saveBtn = document.querySelector('.navbar-btn[onclick="saveData()"]') ||
+    document.querySelector('.btn-save');
+
+  // Override the inline onclick if necessary or link the button
+  if (saveBtn) {
+    saveBtn.onclick = saveUPSChecklist;
+    console.log('✓ UPS save logic linked');
+  }
+});
+
+// Load previously saved data and populate the 'colX' fields
+async function loadUPSData(id) {
+  const response = await UPSAPI.getById(id);
+  if (response.success) {
+    populateUPSForm(response.data);
+  }
+}
+
+function populateUPSForm(data) {
+  // Set date
+  const dateInput = document.getElementById('check-date');
+  if (dateInput && data.date) {
+    dateInput.value = data.date.split('T')[0];
+  }
+
+  // Set UPS unit
+  const upsUnitSelect = document.getElementById('ups-unit');
+  if (upsUnitSelect) upsUnitSelect.value = data.upsUnit || '1';
+
+  // Set signature fields
+  const supervisorInput = document.getElementById('sig-supervisor');
+  if (supervisorInput) supervisorInput.value = data.supervisorName || '';
+
+  const employeeInput = document.getElementById('sig-employee');
+  if (employeeInput) employeeInput.value = data.checkedBy || '';
+
+  // Populate readings from the col0-col19 format
+  const tableRows = document.querySelectorAll('#data-body tr');
+  if (data.readings) {
+    data.readings.forEach((reading, index) => {
+      if (tableRows[index]) {
+        const inputs = tableRows[index].querySelectorAll('input');
+        inputs.forEach((inp, i) => {
+          inp.value = reading[`col${i}`] !== null ? reading[`col${i}`] : '';
+        });
+      }
+    });
+  }
+
+  // Trigger threshold checks if function exists in UPS.html
+  if (typeof applyAllThresholds === 'function') {
+    applyAllThresholds();
+  }
+
+  console.log('✓ Form data loaded');
+}
