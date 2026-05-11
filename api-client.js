@@ -3,7 +3,7 @@
  * Handles all communication with the Node.js/Express backend
  */
 
-const API_BASE_URL = 'https://global-logic-final.vercel.app/api';
+const API_BASE_URL = 'https://globallogic-final.onrender.com/api';
 
 // ==================== HUB ROOM API ====================
 
