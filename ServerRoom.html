@@ -15,6 +15,64 @@
         font-family: "Calibri", "Segoe UI", Arial, sans-serif;
         font-size: 12px;
         background: #e8e8e8;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* NAVBAR */
+      .navbar {
+        background: #1a5276;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        flex-wrap: wrap;
+        gap: 15px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-title {
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      .navbar-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .navbar-btn {
+        padding: 8px 14px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 3px;
+        border: 1px solid #0d3b66;
+        background: #2e7cb5;
+        color: white;
+        transition: all 0.2s;
+      }
+
+      .navbar-btn:hover {
+        background: #3d92c9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .navbar-btn.home {
+        background: #28a745;
+        border-color: #1e7e34;
+      }
+
+      .navbar-btn.home:hover {
+        background: #34b853;
       }
 
       /* WRAPPER for Responsiveness */
@@ -358,6 +416,7 @@
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
+        .navbar,
         .footer,
         .settings-bar,
         .date-cell input::-webkit-calendar-picker-indicator {
@@ -402,6 +461,17 @@
   </head>
 
   <body>
+    <div class="navbar">
+      <div class="navbar-title">🏢 Server Room Checklist</div>
+      <div class="navbar-buttons">
+        <button class="navbar-btn" onclick="window.print()">🖨 Print</button>
+        <button class="navbar-btn" onclick="exportToCSV()">📊 Export CSV</button>
+        <button class="navbar-btn" id="load-btn" onclick="loadLatestData()">📥 Load Latest</button>
+        <button class="navbar-btn" onclick="saveData()">💾 Save</button>
+        <button class="navbar-btn home" onclick="window.location.href='index.html'">🏠 Home</button>
+      </div>
+    </div>
+
     <div class="wrapper">
       <div class="page">
         <div class="header">
@@ -538,16 +608,6 @@
             >Daily Check Server Room Temperature | GlobalLogic – Hitachi
             Group</span
           >
-          <div class="btn-group">
-            <button class="btn-print" onclick="window.print()">🖨 Print</button>
-            <button class="btn-csv" onclick="exportToCSV()">
-              📊 Export CSV
-            </button>
-            <button class="btn-save" id="load-btn" onclick="loadLatestData()" style="background: #0066cc;">
-              📥 Load Latest
-            </button>
-            <button class="btn-save" onclick="saveData()">💾 Save</button>
-          </div>
         </div>
       </div>
     </div>
