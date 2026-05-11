@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily UPS Health Check – GL02-FM-ES (M&E)-007</title>
   <style>
-    /* Base Styles for the Facility Checklist */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -66,7 +65,7 @@
     .page {
       background: #fff;
       width: 100%;
-      max-width: 1150px;
+      max-width: 1200px;
       border: 1px solid #aaa;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
       display: flex;
@@ -133,7 +132,6 @@
       font-weight: 600;
     }
 
-    /* Table Styles */
     .table-wrap {
       overflow-x: auto;
       flex-grow: 1;
@@ -141,7 +139,6 @@
 
     table {
       width: 100%;
-      min-width: 1100px;
       border-collapse: collapse;
       table-layout: fixed;
     }
@@ -170,7 +167,6 @@
       background: transparent;
     }
 
-    /* Conditional Formatting */
     td.val-high {
       background-color: #ffe6e6 !important;
     }
@@ -240,21 +236,19 @@
       <div class="address-banner">
         Facility Address: Tower-3, Oxygen Business Park Pvt. Ltd. SEZ, Plot No. 7, Sec-144, Noida (UP)
       </div>
-
       <div class="subheader">
         <div class="capacity-cell">
           UPS Capacity 80 KVA | Unit:
           <select id="ups-unit" onchange="loadDateData()">
-            <option value="1" selected>UPS 1</option>
-            <option value="2">UPS 2</option>
+            <option value="1">UPS 1</option>
+            <option value="2" selected>UPS 2</option>
             <option value="3">UPS 3</option>
             <option value="4">UPS 4</option>
             <option value="5">UPS 5</option>
           </select>
         </div>
-        <div style="padding:10px; font-weight:600;">
-          Date: <input type="date" id="check-date" onchange="loadDateData()" />
-        </div>
+        <div style="padding:10px; font-weight:600;">Date: <input type="date" id="check-date"
+            onchange="loadDateData()" /></div>
       </div>
 
       <div class="table-wrap">
@@ -306,24 +300,25 @@
   <script src="api-client.js"></script>
   <script>
     const TIMES = ["0:00", "2:00", "4:00", "6:00", "8:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
-    const COL_COUNT = 19; // 19 data columns 
+    // 18 data columns + 1 signature column = 19 input columns
+    const COL_COUNT = 19;
+    const SIG_COL_INDEX = 18;
 
-    /* Thresholds matching your requirements */
     const THRESHOLDS = {
       0: [355, 455], 1: [355, 455], 2: [355, 455], // Input V
       6: [396, 404], 7: [396, 404], 8: [396, 404], // Output V
       14: [48, 52],   // Hz
-      15: [432, 462], // Battery Volt
+      15: [432, 462], // Battery V
       17: [22, 24]    // Temp
     };
 
-    /* Build table rows with exactly 20 columns */
     function buildRows() {
       const tbody = document.getElementById("data-body");
       tbody.innerHTML = "";
       TIMES.forEach((t, ri) => {
         const tr = document.createElement("tr");
         let html = `<td class="time-label" style="font-weight:600; background:#f2f2f2;">${t}</td>`;
+        // Generates exactly 19 inputs per row
         for (let ci = 0; ci < COL_COUNT; ci++) {
           html += `<td><input type="text" data-row="${ri}" data-col="${ci}" oninput="validate(this)"></td>`;
         }
@@ -334,7 +329,8 @@
 
     function validate(input) {
       const col = parseInt(input.dataset.col);
-      if (col < 19) { // Only metrics are numeric
+      // Only metrics (0-17) are numeric; 18 is Signature
+      if (col < SIG_COL_INDEX) {
         input.value = input.value.replace(/[^0-9.]/g, "");
         checkThreshold(input);
       }
@@ -352,25 +348,21 @@
       }
     }
 
-    /* Save data to MongoDB matching the col0-col19 schema */
     async function saveData() {
       try {
-        const rows = document.querySelectorAll("#data-body tr");
         const readings = [];
-
+        const rows = document.querySelectorAll("#data-body tr");
         rows.forEach((row) => {
           const inputs = row.querySelectorAll("input");
           const reading = { time: row.querySelector(".time-label").textContent };
-          let rowHasData = false;
-
+          let hasData = false;
           inputs.forEach((inp, ci) => {
             const val = inp.value.trim();
-            if (val) rowHasData = true;
-            // col19 is Signature (text), others are Number
-            reading[`col${ci}`] = (ci === 19) ? val : (parseFloat(val) || null);
+            if (val) hasData = true;
+            // col0-col17 are numeric, col18 is Signature
+            reading[`col${ci}`] = (ci === SIG_COL_INDEX) ? val : (parseFloat(val) || null);
           });
-
-          if (rowHasData) readings.push(reading);
+          if (hasData) readings.push(reading);
         });
 
         const data = {
@@ -384,7 +376,7 @@
 
         const response = await UPSAPI.save(data);
         if (response.success) {
-          showNotification("✓ Data saved successfully", "success");
+          showNotification("✓ Data saved to database", "success");
           localStorage.setItem(`UPS_${data.upsUnit}_${data.date}`, JSON.stringify(data));
         } else {
           showNotification("✗ Save failed: " + response.message, "error");
@@ -394,11 +386,9 @@
       }
     }
 
-    /* Load data function matching colX schema */
     async function loadLatestData() {
       const upsNum = document.getElementById("ups-unit").value;
       const response = await UPSAPI.getAll();
-
       if (response.success && response.data.length > 0) {
         const record = response.data.find(r => r.upsUnit === upsNum) || response.data[0];
         document.getElementById("check-date").value = record.date.split('T')[0];
@@ -429,25 +419,6 @@
       }
     }
 
-    function exportToCSV() {
-      const date = document.getElementById("check-date").value;
-      const upsNum = document.getElementById("ups-unit").value;
-      let csv = [`UPS (Unit ${upsNum}) Report - ${date}\n`];
-      const headers = ["Time", "I/P RY", "I/P YB", "I/P BR", "I/P IR", "I/P IY", "I/P IB", "O/P RY", "O/P YB", "O/P BR", "O/P IR", "O/P IY", "O/P IB", "KVA", "KW", "Hz", "Volt", "A", "Temp", "Signature"];
-      csv.push(headers.join(","));
-      document.querySelectorAll("#data-body tr").forEach(row => {
-        const rowData = [row.querySelector(".time-label").textContent];
-        row.querySelectorAll("input").forEach(inp => rowData.push(`"${inp.value}"`));
-        csv.push(rowData.join(","));
-      });
-      const blob = new Blob([csv.join("\n")], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `UPS_${upsNum}_${date}.csv`;
-      link.click();
-    }
-
-    /* Initialization */
     document.getElementById("check-date").value = new Date().toISOString().split("T")[0];
     buildRows();
   </script>
