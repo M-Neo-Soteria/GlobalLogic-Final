@@ -716,7 +716,8 @@
                 time: inputs[0].value,
                 temperature: parseFloat(inputs[1]?.value) || null,
                 humidity: parseFloat(inputs[2]?.value) || null,
-                notes: inputs[3]?.value || ""
+                signature: inputs[3]?.value || "",
+                notes: inputs[4]?.value || ""
               });
             }
           });
@@ -777,7 +778,8 @@
                   if (inputs[0]) inputs[0].value = reading.time || "";
                   if (inputs[1]) inputs[1].value = reading.temperature || "";
                   if (inputs[2]) inputs[2].value = reading.humidity || "";
-                  if (inputs[3]) inputs[3].value = reading.notes || "";
+                  if (inputs[3]) inputs[3].value = reading.signature || "";
+                  if (inputs[4]) inputs[4].value = reading.notes || "";
                   if (inputs[0]) checkThreshold(inputs[0]);
                   if (inputs[1]) checkThreshold(inputs[1]);
                 }
@@ -841,6 +843,5 @@
     <!-- MongoDB API Scripts -->
     <script src="notification-helper.js"></script>
     <script src="api-client.js"></script>
-    <script src="serverroom-handler.js"></script>
   </body>
 </html>

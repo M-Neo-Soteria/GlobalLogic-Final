@@ -577,7 +577,8 @@
               readings.push({
                 time: inputs[0].value,
                 temperature: parseFloat(inputs[1]?.value) || null,
-                notes: inputs[2]?.value || ""
+                signature: inputs[2]?.value || "",
+                notes: inputs[3]?.value || ""
               });
             }
           });
@@ -705,7 +706,8 @@
                   const inputs = tableRows[index].querySelectorAll("input");
                   if (inputs[0]) inputs[0].value = reading.time || "";
                   if (inputs[1]) inputs[1].value = reading.temperature || "";
-                  if (inputs[2]) inputs[2].value = reading.notes || "";
+                  if (inputs[2]) inputs[2].value = reading.signature || "";
+                  if (inputs[3]) inputs[3].value = reading.notes || "";
                   // Apply threshold colors
                   if (inputs[1]) applyThreshold(inputs[1]);
                 }
@@ -728,6 +730,5 @@
     <!-- MongoDB API Scripts -->
     <script src="notification-helper.js"></script>
     <script src="api-client.js"></script>
-    <script src="hubroom-handler.js"></script>
   </body>
 </html>

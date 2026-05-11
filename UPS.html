@@ -716,23 +716,18 @@
           data["sig_sup"] = supervisorName;
           data["sig_emp"] = checkedBy;
 
-          // Collect readings for MongoDB
+          // Collect readings for MongoDB - capture all 19 columns
           document.querySelectorAll("#data-body tr").forEach((row) => {
             const inputs = row.querySelectorAll("input");
             if (inputs.length > 0 && inputs[0].value) {
-              readings.push({
-                time: inputs[0].value,
-                inputVoltage: parseFloat(inputs[1]?.value) || null,
-                inputFrequency: parseFloat(inputs[2]?.value) || null,
-                batteryVoltage: parseFloat(inputs[3]?.value) || null,
-                batteryCapacity: parseFloat(inputs[4]?.value) || null,
-                outputVoltage: parseFloat(inputs[5]?.value) || null,
-                outputFrequency: parseFloat(inputs[6]?.value) || null,
-                outputPower: parseFloat(inputs[7]?.value) || null,
-                temperature: parseFloat(inputs[8]?.value) || null,
-                alarmStatus: inputs[9]?.value || "",
-                notes: inputs[10]?.value || ""
-              });
+              // Create reading object with all 19 fields
+              const reading = { time: inputs[0].value };
+              for (let i = 1; i < inputs.length; i++) {
+                const val = inputs[i].value;
+                // Signature column (18) is text, others are numeric
+                reading[`col${i}`] = (i === 18) ? val : (parseFloat(val) || null);
+              }
+              readings.push(reading);
             }
           });
 
@@ -798,11 +793,11 @@
               latestRecord.readings.forEach((reading, index) => {
                 if (tableRows[index]) {
                   const inputs = tableRows[index].querySelectorAll("input");
-                  const fields = ['time', 'inputVoltage', 'inputFrequency', 'batteryVoltage', 'batteryCapacity',
-                                 'outputVoltage', 'outputFrequency', 'outputPower', 'temperature', 'alarmStatus', 'notes'];
-                  fields.forEach((field, i) => {
-                    if (inputs[i]) inputs[i].value = reading[field] || "";
-                  });
+                  if (inputs[0]) inputs[0].value = reading.time || "";
+                  // Load all 19 columns
+                  for (let i = 1; i < Math.min(19, inputs.length); i++) {
+                    if (inputs[i]) inputs[i].value = reading[`col${i}`] || "";
+                  }
                 }
               });
               showNotification(`✓ Loaded UPS ${upsNum} data from ${dateStr}`, 'success');
@@ -882,6 +877,5 @@
     <!-- MongoDB API Scripts -->
     <script src="notification-helper.js"></script>
     <script src="api-client.js"></script>
-    <script src="ups-handler.js"></script>
   </body>
 </html>
