@@ -885,10 +885,20 @@
                   console.log(`Row ${index} has ${inputs.length} inputs`); // DEBUG
                   
                   inputs.forEach((inp, colIndex) => {
-                    const value = reading[`col${colIndex}`];
+                    let value = reading[`col${colIndex}`];
+                    
+                    // Fallback for backward compatibility: if loading col19 (signature) and it's empty,
+                    // try to get it from col18 (old position)
+                    if (colIndex === 19 && (value === undefined || value === null)) {
+                      value = reading[`col18`];
+                    }
+                    
                     inp.value = (value !== undefined && value !== null) ? value : "";
                     console.log(`Row ${index}, Col ${colIndex}: set to`, inp.value); // DEBUG
                   });
+                  
+                  // Apply threshold validation for numeric columns
+                  applyAllThresholds();
                 }
               });
               showNotification(`✓ Loaded UPS ${upsNum} data from ${dateStr}`, 'success');
