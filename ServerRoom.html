@@ -751,15 +751,23 @@
       async function loadLatestData() {
         try {
           const response = await ServerRoomAPI.getAll();
+          console.log('Load response:', response); // DEBUG
           
           if (response.success && response.data.length > 0) {
             const latestRecord = response.data[0];
+            console.log('Latest record:', latestRecord); // DEBUG
             
             const dateStr = latestRecord.date.split('T')[0];
             document.getElementById("check-date").value = dateStr;
             
-            document.getElementById("sig-supervisor").value = latestRecord.supervisorName || "";
-            document.getElementById("sig-employee").value = latestRecord.checkedBy || "";
+            const supField = document.getElementById("sig-supervisor");
+            const empField = document.getElementById("sig-employee");
+            
+            supField.value = latestRecord.supervisorName || "";
+            empField.value = latestRecord.checkedBy || "";
+            
+            console.log('Supervisor set to:', supField.value); // DEBUG
+            console.log('Employee set to:', empField.value); // DEBUG
             
             if (latestRecord.readings && latestRecord.readings.length > 0) {
               const tableRows = document.querySelectorAll("#data-body tr");

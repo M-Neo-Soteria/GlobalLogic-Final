@@ -677,17 +677,25 @@
       async function loadLatestData() {
         try {
           const response = await HubRoomAPI.getAll();
+          console.log('Load response:', response); // DEBUG
           
           if (response.success && response.data.length > 0) {
             const latestRecord = response.data[0]; // Most recent first
+            console.log('Latest record:', latestRecord); // DEBUG
             
             // Set date
             const dateStr = latestRecord.date.split('T')[0];
             document.getElementById("check-date").value = dateStr;
             
-            // Set signatures
-            document.getElementById("sig-supervisor").value = latestRecord.supervisorName || "";
-            document.getElementById("sig-employee").value = latestRecord.checkedBy || "";
+            // Set signatures - IMPORTANT: Use these exact field names from MongoDB
+            const supField = document.getElementById("sig-supervisor");
+            const empField = document.getElementById("sig-employee");
+            
+            supField.value = latestRecord.supervisorName || "";
+            empField.value = latestRecord.checkedBy || "";
+            
+            console.log('Supervisor set to:', supField.value); // DEBUG
+            console.log('Employee set to:', empField.value); // DEBUG
             
             // Load readings into table
             if (latestRecord.readings && latestRecord.readings.length > 0) {
